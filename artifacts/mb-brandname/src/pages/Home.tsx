@@ -1,181 +1,251 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import useEmblaCarousel from "embla-carousel-react";
 import { Link } from "wouter";
-import { ChevronRight, ChevronLeft, ShieldCheck, Truck, RefreshCcw } from "lucide-react";
+import { ChevronLeft, ChevronRight, Truck, Phone, Shield } from "lucide-react";
 import { products } from "@/data/products";
 import { ProductCard } from "@/components/ProductCard";
 
-/* landing page hero luxury fashion model */
-const heroImages = [
-  "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=1920&q=80",
-  "https://images.unsplash.com/photo-1532453288672-3a27e9be9efd?w=1920&q=80",
-  "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=1920&q=80",
+const heroSlides = [
+  {
+    image: "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=1920&q=80",
+    label: "New Season",
+  },
+  {
+    image: "https://images.unsplash.com/photo-1532453288672-3a27e9be9efd?w=1920&q=80",
+    label: "Luxury Bags",
+  },
+  {
+    image: "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=1920&q=80",
+    label: "Accessories",
+  },
+];
+
+const promoSlides = [
+  {
+    image: "https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=800&q=80",
+    heading: "A bracelet with timeless elegance.",
+    body1: "This bracelet embodies timeless beauty through its refined yet powerful design. The gold-tone frame is paired with soft, luminous white accents, highlighted by the brand's iconic logo at the center — a symbol cherished worldwide.",
+    body2: "More than just jewelry, this piece carries a story of taste, craftsmanship, and individuality. Versatile enough to complement any style, it can elevate a glamorous evening look or add sophistication to a simple, everyday outfit.",
+    cta: "/collection/accessories",
+  },
+  {
+    image: "https://images.unsplash.com/photo-1611652022419-a9419f74343d?w=800&q=80",
+    heading: "Each necklace has its own unique story to tell.",
+    body1: "In the world of fashion, true luxury is not defined by price alone, but by the story behind each piece.",
+    body2: "This necklace was designed to embody timeless elegance. The gold-tone chain is meticulously crafted, gleaming under the light like a treasure from a classic era that still feels modern today. Its round pendant, adorned with ornate engravings, frames the iconic brand emblem — a symbol admired across the globe.",
+    cta: "/collection/new-arrivals",
+  },
+  {
+    image: "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=800&q=80",
+    heading: "Crafted for those who understand true luxury.",
+    body1: "Our bag collection brings together the finest materials sourced from ateliers across Europe and Japan.",
+    body2: "Each piece tells a story of quality and refinement. Designed for the modern connoisseur who values both beauty and function.",
+    cta: "/collection/bags",
+  },
 ];
 
 export function Home() {
-  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true });
-  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [heroRef, heroApi] = useEmblaCarousel({ loop: true });
+  const [heroIndex, setHeroIndex] = useState(0);
+  const [promoIndex, setPromoIndex] = useState(0);
 
   useEffect(() => {
-    if (!emblaApi) return;
-    emblaApi.on("select", () => setSelectedIndex(emblaApi.selectedScrollSnap()));
-  }, [emblaApi]);
+    if (!heroApi) return;
+    heroApi.on("select", () => setHeroIndex(heroApi.selectedScrollSnap()));
+    const id = setInterval(() => heroApi.scrollNext(), 5000);
+    return () => clearInterval(id);
+  }, [heroApi]);
 
-  const newArrivals = products.filter(p => p.tags.includes("new-arrivals")).slice(0, 4);
+  const scrollHeroPrev = useCallback(() => heroApi?.scrollPrev(), [heroApi]);
+  const scrollHeroNext = useCallback(() => heroApi?.scrollNext(), [heroApi]);
+
+  const newArrivals = products.filter(p => p.tags.includes("new-arrivals")).slice(0, 8);
+  const promo = promoSlides[promoIndex];
 
   return (
     <div className="w-full">
-      {/* Hero Carousel */}
-      <section className="relative w-full h-[70vh] md:h-[85vh] bg-secondary overflow-hidden">
-        <div className="overflow-hidden h-full" ref={emblaRef}>
+
+      {/* ── Hero Carousel ── */}
+      <section className="relative w-full overflow-hidden">
+        <div
+          className="w-full overflow-hidden"
+          style={{ height: "min(50vw, 600px)", minHeight: 260 }}
+          ref={heroRef}
+        >
           <div className="flex h-full">
-            {heroImages.map((src, idx) => (
-              <div key={idx} className="flex-[0_0_100%] min-w-0 relative h-full">
-                <div className="absolute inset-0 bg-black/20 z-10" />
-                <img src={src} alt="Hero banner" className="object-cover w-full h-full" />
-                <div className="absolute inset-0 z-20 flex flex-col items-center justify-center text-white text-center p-4">
-                  <span className="text-[10px] md:text-xs tracking-[0.4em] uppercase font-semibold mb-4 drop-shadow-md">
-                    No.1 Luxury Brandname
-                  </span>
-                  <h2 className="font-serif text-4xl md:text-6xl lg:text-7xl font-bold mb-8 max-w-3xl drop-shadow-lg leading-tight">
-                    Elevate Your Style
+            {heroSlides.map((slide, i) => (
+              <div key={i} className="flex-[0_0_100%] min-w-0 relative h-full">
+                <img
+                  src={slide.image}
+                  alt={slide.label}
+                  className="w-full h-full object-cover object-center"
+                  loading={i === 0 ? "eager" : "lazy"}
+                />
+                <div className="absolute inset-0 bg-black/30" />
+                <div className="absolute bottom-1/2 translate-y-1/2 left-[8%] text-white">
+                  <h2 className="text-3xl md:text-5xl lg:text-6xl font-light tracking-widest text-white drop-shadow-lg">
+                    NO.1 Luxury Brandname
                   </h2>
-                  <Link
-                    href="/collection/new-arrivals"
-                    className="bg-white text-primary px-8 py-3 text-xs md:text-sm font-bold tracking-widest uppercase hover:bg-accent hover:text-white transition-colors duration-300"
-                  >
-                    Shop New Arrivals
-                  </Link>
                 </div>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Carousel Controls */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex gap-3">
-          {heroImages.map((_, idx) => (
+        {/* Arrows */}
+        <button
+          onClick={scrollHeroPrev}
+          className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/70 rounded-full flex items-center justify-center text-black hover:bg-white transition-colors"
+          aria-label="Previous slide"
+        >
+          <ChevronLeft className="w-4 h-4" />
+        </button>
+        <button
+          onClick={scrollHeroNext}
+          className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/70 rounded-full flex items-center justify-center text-black hover:bg-white transition-colors"
+          aria-label="Next slide"
+        >
+          <ChevronRight className="w-4 h-4" />
+        </button>
+
+        {/* Dots */}
+        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2">
+          {heroSlides.map((_, i) => (
             <button
-              key={idx}
-              className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
-                idx === selectedIndex ? "bg-white w-8" : "bg-white/50 hover:bg-white/80"
-              }`}
-              onClick={() => emblaApi?.scrollTo(idx)}
-              aria-label={`Go to slide ${idx + 1}`}
+              key={i}
+              onClick={() => heroApi?.scrollTo(i)}
+              className={`h-2 rounded-full transition-all duration-300 ${i === heroIndex ? "w-6 bg-white" : "w-2 bg-white/50"}`}
+              aria-label={`Go to slide ${i + 1}`}
             />
           ))}
         </div>
       </section>
 
-      {/* New Arrivals Section */}
-      <section className="py-20 md:py-32 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col items-center mb-16">
-          <h2 className="font-serif text-3xl md:text-4xl font-bold text-foreground mb-4">New Arrivals</h2>
-          <div className="w-16 h-0.5 bg-accent mb-6" />
-          <p className="text-muted-foreground text-center max-w-2xl">
-            Discover our latest collection of curated luxury pieces. Carefully selected for the modern connoisseur.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          {newArrivals.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
-
-        <div className="mt-16 flex justify-center">
-          <Link
-            href="/collection/new-arrivals"
-            className="border-2 border-primary text-primary px-8 py-3 text-sm font-bold tracking-widest uppercase hover:bg-primary hover:text-white transition-all duration-300"
-          >
-            View More
-          </Link>
+      {/* ── New Arrivals ── */}
+      <section className="py-12 lg:py-16 bg-white">
+        <div className="container mx-auto px-4">
+          <h2 className="text-center text-sm font-semibold uppercase tracking-[0.3em] mb-10">
+            NEW ARRIVALS
+          </h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 lg:gap-5">
+            {newArrivals.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+          <div className="flex justify-center mt-10">
+            <Link
+              href="/collection/new-arrivals"
+              className="border border-gray-400 text-xs uppercase tracking-widest px-8 py-3 hover:bg-black hover:text-white hover:border-black transition-colors"
+            >
+              VIEW MORE →
+            </Link>
+          </div>
         </div>
       </section>
 
-      {/* Promotional Split Section */}
-      <section className="bg-[#f9f9f9]">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col lg:flex-row items-center">
-            <div className="w-full lg:w-1/2 h-[50vh] lg:h-[70vh]">
-              {/* editorial lifestyle shot of jewelry */}
-              <img
-                src="https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=1200&q=80"
-                alt="Jewelry editorial"
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <div className="w-full lg:w-1/2 p-12 lg:p-24 flex flex-col justify-center">
-              <span className="text-[10px] tracking-[0.3em] uppercase text-muted-foreground mb-4 font-semibold">
-                The Heritage Collection
-              </span>
-              <h2 className="font-serif text-3xl md:text-5xl font-bold text-foreground mb-6 leading-tight">
-                A bracelet with timeless elegance
-              </h2>
-              <div className="space-y-4 text-muted-foreground text-sm md:text-base leading-relaxed mb-8">
-                <p>
-                  Experience the perfect harmony of classic design and modern craftsmanship. Our heritage pieces are designed to be passed down through generations, making a quiet yet powerful statement.
-                </p>
-                <p>
-                  Each piece is meticulously crafted using ethically sourced materials, ensuring not just beauty, but sustainability and durability.
-                </p>
+      {/* ── Promotional Carousel ── */}
+      <section className="py-12 lg:py-16 bg-white border-t border-gray-100">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col md:flex-row items-center gap-8 lg:gap-16">
+
+            {/* Image with arrows */}
+            <div className="relative w-full md:w-5/12">
+              <button
+                onClick={() => setPromoIndex((promoIndex - 1 + promoSlides.length) % promoSlides.length)}
+                className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 w-8 h-8 border border-gray-300 rounded-full flex items-center justify-center text-gray-400 text-sm bg-white hover:border-gray-600 hover:text-gray-700 transition-colors z-10"
+                aria-label="Previous"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <div className="aspect-square overflow-hidden bg-gray-100">
+                <img
+                  key={promo.image}
+                  src={promo.image}
+                  alt="Promotional"
+                  className="w-full h-full object-cover"
+                />
               </div>
+              <button
+                onClick={() => setPromoIndex((promoIndex + 1) % promoSlides.length)}
+                className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 w-8 h-8 border border-gray-300 rounded-full flex items-center justify-center text-gray-400 text-sm bg-white hover:border-gray-600 hover:text-gray-700 transition-colors z-10"
+                aria-label="Next"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Text */}
+            <div className="w-full md:w-7/12 flex flex-col gap-4">
+              <h2 className="text-2xl lg:text-3xl font-light leading-snug text-black">
+                {promo.heading}
+              </h2>
+              <p className="text-sm lg:text-base text-gray-600 leading-relaxed">
+                {promo.body1}
+              </p>
+              <p className="text-sm lg:text-base text-gray-600 leading-relaxed">
+                {promo.body2}
+              </p>
               <div>
                 <Link
-                  href="/collection/accessories"
-                  className="inline-flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-primary border-b-2 border-accent pb-1 hover:text-accent transition-colors group"
+                  href={promo.cta}
+                  className="inline-block bg-gray-800 text-white text-xs uppercase tracking-widest px-6 py-3 mt-4 hover:bg-black transition-colors"
                 >
-                  Find Your Style
-                  <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  FIND YOUR STYLE
                 </Link>
+              </div>
+              <div className="flex gap-2 mt-2">
+                {promoSlides.map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setPromoIndex(i)}
+                    className={`w-2 h-2 rounded-full transition-colors ${i === promoIndex ? "bg-gray-800" : "bg-gray-300"}`}
+                    aria-label={`Promo slide ${i + 1}`}
+                  />
+                ))}
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* About Section */}
-      <section className="py-24 md:py-32 bg-white text-center px-4">
-        <div className="max-w-3xl mx-auto">
-          <span className="text-[12px] tracking-[0.4em] uppercase text-accent font-bold mb-4 block">
-            Our Promise
-          </span>
-          <h2 className="font-serif text-4xl md:text-5xl font-bold text-foreground mb-8">
-            100% Authentic
-          </h2>
-          <p className="text-muted-foreground text-lg md:text-xl leading-relaxed mb-12">
-            Every piece in our collection is strictly verified and imported directly from verified luxury boutiques in Japan and Europe. We stand behind the authenticity of our entire catalogue with a lifetime guarantee.
+      {/* ── About Us ── */}
+      <section className="py-12 lg:py-16 bg-white border-t border-gray-100">
+        <div className="container mx-auto px-4 text-center max-w-2xl">
+          <h2 className="text-sm uppercase tracking-[0.3em] font-semibold mb-4">ABOUT US</h2>
+          <h3 className="text-base font-semibold uppercase tracking-wide mb-4">
+            100% AUTHENTIC BRANDED ITEMS FROM JAPAN
+          </h3>
+          <p className="text-xs text-gray-500 uppercase tracking-wider leading-loose">
+            CAREFULLY SELECTED AND IMPORTED DIRECTLY FROM JAPAN.<br />
+            WITH OVER 10 YEARS OF EXPERIENCE IN AUTHENTIC SECONDHAND BRANDED GOODS,<br />
+            WE GUARANTEE GENUINE QUALITY. EACH ITEM IS THOROUGHLY INSPECTED BEFORE DELIVERY.
           </p>
-          <img 
-             src="https://pixabay.com/get/gadb51058cd7dc8e3e7ac4bbfc5654994a535a5598388125e58ca7dd9c6b77c87212b7b522c11f9772a1fe1dde10bcf8850c86cd577f8c3b9d07026a4ad08637b_1280.jpg" 
-             alt="Authentication process"
-             className="w-full max-w-lg mx-auto aspect-[16/9] object-cover rounded-sm shadow-xl"
-          />
         </div>
       </section>
 
-      {/* Features Row */}
-      <section className="py-16 bg-foreground text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 text-center divide-y md:divide-y-0 md:divide-x divide-gray-800">
-            <div className="flex flex-col items-center pt-8 md:pt-0">
-              <Truck className="w-10 h-10 mb-4 text-accent" />
-              <h3 className="font-serif text-xl font-bold mb-2">Free Shipping</h3>
-              <p className="text-gray-400 text-sm">Complimentary express delivery on all orders over $500.</p>
+      {/* ── Feature Icons ── */}
+      <section className="py-10 lg:py-12 bg-white border-t border-gray-100">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 text-center divide-y sm:divide-y-0 sm:divide-x divide-gray-200">
+            <div className="flex flex-col items-center pt-8 sm:pt-0">
+              <Truck className="w-10 h-10 mb-4 stroke-1 text-gray-700" />
+              <h3 className="font-medium text-sm mb-1">Fast And Free Delivery</h3>
+              <p className="text-xs text-gray-500">Free delivery for all orders over $140</p>
             </div>
-            <div className="flex flex-col items-center pt-8 md:pt-0">
-              <ShieldCheck className="w-10 h-10 mb-4 text-accent" />
-              <h3 className="font-serif text-xl font-bold mb-2">Authentic Guarantee</h3>
-              <p className="text-gray-400 text-sm">Every item is verified by our expert authentication team.</p>
+            <div className="flex flex-col items-center pt-8 sm:pt-0">
+              <Phone className="w-10 h-10 mb-4 stroke-1 text-gray-700" />
+              <h3 className="font-medium text-sm mb-1">24/7 Customer Support</h3>
+              <p className="text-xs text-gray-500">Friendly 24/7 customer support</p>
             </div>
-            <div className="flex flex-col items-center pt-8 md:pt-0">
-              <RefreshCcw className="w-10 h-10 mb-4 text-accent" />
-              <h3 className="font-serif text-xl font-bold mb-2">Easy Returns</h3>
-              <p className="text-gray-400 text-sm">14-day hassle-free return policy for peace of mind.</p>
+            <div className="flex flex-col items-center pt-8 sm:pt-0">
+              <Shield className="w-10 h-10 mb-4 stroke-1 text-gray-700" />
+              <h3 className="font-medium text-sm mb-1">Money Back Guarantee</h3>
+              <p className="text-xs text-gray-500">We return money within 30 days</p>
             </div>
           </div>
         </div>
       </section>
+
     </div>
   );
 }

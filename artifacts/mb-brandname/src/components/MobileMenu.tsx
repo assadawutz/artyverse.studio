@@ -1,26 +1,12 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { Link, useLocation } from "wouter";
+import { Link } from "wouter";
 import { X } from "lucide-react";
 import { useShop } from "@/context/ShopContext";
-import { cn } from "@/lib/utils";
 
 export function MobileMenu() {
   const { isMobileMenuOpen, setIsMobileMenuOpen } = useShop();
-  const [location] = useLocation();
 
-  const links = [
-    { href: "/", label: "Home" },
-    { href: "/collection/new-arrivals", label: "New Arrivals", badge: "NEW" },
-    { href: "/collection/bags", label: "Bags" },
-    { href: "/collection/accessories", label: "Accessories" },
-  ];
-
-  const bottomLinks = [
-    { href: "/stores", label: "Stores" },
-    { href: "/about", label: "About Us" },
-    { href: "/partnership", label: "Partnership" },
-    { href: "/careers", label: "Careers" },
-  ];
+  const close = () => setIsMobileMenuOpen(false);
 
   return (
     <AnimatePresence>
@@ -30,67 +16,74 @@ export function MobileMenu() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[90] bg-black/40 backdrop-blur-sm"
-            onClick={() => setIsMobileMenuOpen(false)}
+            className="fixed inset-0 z-[90] bg-black/20"
+            onClick={close}
           />
           <motion.div
             initial={{ x: "100%" }}
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
-            transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="fixed inset-y-0 right-0 z-[100] w-full max-w-sm bg-background shadow-2xl flex flex-col"
+            transition={{ type: "tween", duration: 0.3, ease: "easeOut" }}
+            className="fixed inset-y-0 right-0 z-[100] w-full lg:hidden bg-white overflow-y-auto"
           >
-            <div className="flex items-center justify-between p-4 border-b border-border">
-              <span className="font-serif font-bold text-xl">Menu</span>
+            <div className="container mx-auto px-6 relative">
+              {/* Close button */}
               <button
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="p-2 bg-secondary rounded-full hover:bg-muted transition-colors"
+                onClick={close}
+                className="absolute top-4 right-4 w-10 h-10 flex items-center justify-center text-2xl text-gray-600 hover:text-black"
+                aria-label="Close menu"
               >
-                <X className="w-5 h-5" />
+                <X className="w-6 h-6" />
               </button>
-            </div>
 
-            <div className="flex-1 overflow-y-auto">
-              <nav className="flex flex-col py-6">
-                {links.map((link) => (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className={cn(
-                      "flex items-center justify-between py-4 px-6 text-[22px] font-black uppercase tracking-tight border-b border-border/50",
-                      location === link.href ? "text-accent" : "text-foreground hover:text-accent transition-colors"
-                    )}
-                  >
-                    {link.label}
-                    {link.badge && (
-                      <span className="text-[10px] font-bold tracking-widest bg-muted text-muted-foreground px-2 py-1 rounded">
-                        {link.badge}
-                      </span>
-                    )}
-                  </Link>
-                ))}
+              {/* Nav items */}
+              <nav className="mt-16 flex flex-col divide-y divide-gray-100">
+                <Link href="/" onClick={close} className="flex items-center justify-between py-5">
+                  <span className="text-[22px] font-black uppercase tracking-tight text-black">Home</span>
+                </Link>
+                <Link href="/collection/new-arrivals" onClick={close} className="flex items-center justify-between py-5">
+                  <span className="text-[22px] font-black uppercase tracking-tight text-black">New Arrivals</span>
+                  <span className="text-xs font-semibold text-gray-400 uppercase tracking-widest ml-3">NEW</span>
+                </Link>
+                <Link href="/collection/bags" onClick={close} className="flex items-center justify-between py-5">
+                  <span className="text-[22px] font-black uppercase tracking-tight text-black">Bags</span>
+                </Link>
+                <Link href="/collection/accessories" onClick={close} className="flex items-center justify-between py-5">
+                  <span className="text-[22px] font-black uppercase tracking-tight text-black">Accessories</span>
+                </Link>
+                <Link href="/about" onClick={close} className="flex items-center justify-between py-5">
+                  <span className="text-[22px] font-black uppercase tracking-tight text-black">About Us</span>
+                </Link>
+                <div className="flex items-center justify-between py-5">
+                  <span className="text-[22px] font-black uppercase tracking-tight text-black">Collections +</span>
+                </div>
+                <div className="flex items-center justify-between py-5">
+                  <span className="text-[22px] font-black uppercase tracking-tight text-black">Products +</span>
+                </div>
+                <div className="flex items-center justify-between py-5">
+                  <span className="text-[22px] font-black uppercase text-[#E91E8C]">Special Price</span>
+                </div>
+                <div className="flex items-center justify-between py-5">
+                  <span className="text-[22px] font-black italic text-[#CC0000]">GentlewomanUniverse</span>
+                </div>
+                <div className="flex items-center justify-between py-5">
+                  <span className="text-[22px] font-black uppercase tracking-[0.2em] text-black">Gentle&nbsp; Littlewoman</span>
+                </div>
               </nav>
 
-              <div className="px-6 py-8">
-                <div className="grid grid-cols-2 gap-y-4 gap-x-8">
-                  {bottomLinks.map(link => (
-                    <Link
-                      key={link.href}
-                      href={link.href}
-                      onClick={() => setIsMobileMenuOpen(false)}
-                      className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      {link.label}
-                    </Link>
-                  ))}
-                </div>
-                
-                <div className="mt-12 flex gap-4 text-sm font-bold">
-                  <span className="text-foreground">EN</span>
-                  <span className="text-muted-foreground">|</span>
-                  <span className="text-muted-foreground hover:text-foreground cursor-pointer transition-colors">TH</span>
-                </div>
+              {/* Language toggle */}
+              <div className="flex items-center gap-3 py-5 mt-2 border-t border-gray-100">
+                <span className="text-sm font-black uppercase text-black">EN</span>
+                <span className="text-gray-300">/</span>
+                <span className="text-sm font-normal uppercase text-gray-400 cursor-pointer hover:text-black transition-colors">TH</span>
+              </div>
+
+              {/* Bottom links grid */}
+              <div className="grid grid-cols-2 gap-x-8 gap-y-4 border-t border-gray-200 pt-6 mt-4">
+                <Link href="/stores" onClick={close} className="text-xs uppercase tracking-widest font-semibold text-gray-700 hover:text-black transition-colors">Stores</Link>
+                <Link href="/about" onClick={close} className="text-xs uppercase tracking-widest font-semibold text-gray-700 hover:text-black transition-colors">About Us</Link>
+                <Link href="/partnership" onClick={close} className="text-xs uppercase tracking-widest font-semibold text-gray-700 hover:text-black transition-colors">Partnership</Link>
+                <Link href="/supplier" onClick={close} className="text-xs uppercase tracking-widest font-semibold text-gray-700 hover:text-black transition-colors">Supplier Applications</Link>
               </div>
             </div>
           </motion.div>
