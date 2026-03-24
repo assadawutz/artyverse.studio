@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "MB Brandname"
+version = "1.0.0"
+id = "artifacts/mb-brandname"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 20770
+
+[services.development]
+run = "pnpm --filter @workspace/mb-brandname run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/mb-brandname", "run", "build" ]
+publicDir = "artifacts/mb-brandname/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "20770"
+BASE_PATH = "/"

@@ -48,6 +48,21 @@ Every package extends `tsconfig.base.json` which sets `composite: true`. The roo
 - `pnpm run build` — runs `typecheck` first, then recursively runs `build` in all packages that define it
 - `pnpm run typecheck` — runs `tsc --build --emitDeclarationOnly` using project references
 
+## Artifacts
+
+### `artifacts/mb-brandname` — MB Brandname Luxury E-Commerce Store
+
+A full luxury fashion e-commerce web app matching the MBbrandname UI/UX spec.
+
+- **Stack**: React + Vite + Tailwind CSS + Wouter (routing) + Embla Carousel + Framer Motion
+- **Preview path**: `/` (root)
+- **Pages**: Home, Product Listing (`/collection/:category`), Product Detail (`/product/:slug`)
+- **Components**: Navbar, MobileMenu (slide-in overlay), CartDrawer (animated slide-in from right), Footer, ProductCard
+- **State**: ShopContext (cart + wishlist via React Context)
+- **Products**: 12 static products in `src/data/products.ts` (new-arrivals, bags, accessories)
+- **Features**: Hero carousel, New Arrivals grid, promo split section, About section, features row
+- **Design**: Luxury minimalist — white/black palette, gold accent (#B9A16B), uppercase tracking labels
+
 ## Packages
 
 ### `artifacts/api-server` (`@workspace/api-server`)

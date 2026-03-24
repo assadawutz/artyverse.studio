@@ -1,0 +1,714 @@
+# MBbrandname — UI/UX Spec (Pixel-Perfect + Tailwind CSS)
+
+> **Stack**: Tailwind CSS · `container mx-auto px-4` · Mobile-first (default → `sm:` → `md:` → `lg:` → `xl:`)
+> **Color Palette**: White `#FFFFFF` · Near-black `#1A1A1A` · Light gray bg `#F5F5F5` · Medium gray text `#6B6B6B` · Sale red `#CC0000` · Gold accent `#B8860B`
+> **Typography**: Logo/heading — serif or custom logo font · Nav/body — `font-sans text-sm tracking-wide` · Uppercase labels — `uppercase tracking-widest text-xs`
+> **Base**: `box-sizing: border-box` · Images `object-cover` · All interactive elements `cursor-pointer`
+
+-----
+
+## 1. NAVBAR (`navbar.png`)
+
+### Layout
+
+```
+[LOGO]          [Home] [New Arrivals] [Bags] [Accessories] [About us]          [🔍][👤][♡][🛒·]
+```
+
+### Structure
+
+```html
+<header class="w-full bg-white border-b border-gray-100 sticky top-0 z-50">
+  <div class="container mx-auto px-4">
+    <div class="flex items-center justify-between h-14 lg:h-16">
+```
+
+|Zone           |Classes                                                                                                                     |Notes                                 |
+|---------------|----------------------------------------------------------------------------------------------------------------------------|--------------------------------------|
+|Wrapper        |`flex items-center justify-between h-14 lg:h-16`                                                                            |56px mobile / 64px desktop            |
+|Logo           |`flex flex-col leading-none`                                                                                                |“m3” large + “MBbrandname” small below|
+|Logo top text  |`text-xl font-bold tracking-tight text-black`                                                                               |“m3”                                  |
+|Logo sub text  |`text-[9px] tracking-widest uppercase text-gray-500`                                                                        |“MBbrandname”                         |
+|Desktop nav    |`hidden lg:flex items-center gap-8`                                                                                         |hidden on mobile                      |
+|Nav link       |`text-sm font-normal tracking-wide text-gray-800 hover:text-black transition-colors`                                        |                                      |
+|Active nav link|`font-medium text-black underline underline-offset-4`                                                                       |                                      |
+|Icon group     |`flex items-center gap-3 lg:gap-4`                                                                                          |                                      |
+|Icon button    |`w-8 h-8 flex items-center justify-center text-gray-700 hover:text-black`                                                   |SVG icons 20×20                       |
+|Cart badge     |`relative` → `absolute -top-1 -right-1 w-4 h-4 bg-black text-white text-[9px] rounded-full flex items-center justify-center`|                                      |
+
+### Mobile
+
+- Logo + icons visible at all times
+- Hamburger icon (`☰`) replaces nav links on `< lg`
+- Height: `h-14` (56px)
+
+-----
+
+## 2. SLIDE MENU MOBILE (`slide_menu_mobile.png`)
+
+### Layout
+
+Full-screen slide-in overlay from right (or top). White background.
+
+```
+                                              [✕]
+GENTLE PACE          NEW
+LEAGUE VIBE CLUB     NEW
+SUN-DRENCHED WHIMSY  NEW
+GENTLEWOMAN CLUB
+COLLECTIONS +
+PRODUCTS +
+SPECIAL PRICE          ← pink #E91E8C
+GentlewomanUniverse    ← red italic serif
+GENTLE  LITTLEWOMAN
+
+EN / TH
+
+─────────────────────
+STORES        ABOUT US
+PARTNERSHIP   SUPPLIER APPLICATIONS
+```
+
+### Structure
+
+```html
+<div class="fixed inset-0 z-[100] bg-white overflow-y-auto lg:hidden">
+  <div class="container mx-auto px-6">
+```
+
+|Element              |Classes                                                                     |Notes             |
+|---------------------|----------------------------------------------------------------------------|------------------|
+|Close button         |`absolute top-4 right-4 w-10 h-10 flex items-center justify-center text-2xl`|“✕”               |
+|Nav list             |`mt-16 flex flex-col gap-0 divide-y divide-gray-100`                        |                  |
+|Nav item wrapper     |`flex items-center justify-between py-5`                                    |                  |
+|Nav link text        |`text-[22px] font-black uppercase tracking-tight text-black`                |                  |
+|“NEW” badge          |`text-xs font-semibold text-gray-400 uppercase tracking-widest ml-3`        |                  |
+|“SPECIAL PRICE”      |`text-[22px] font-black uppercase text-[#E91E8C]`                           |Hot pink          |
+|“GentlewomanUniverse”|`text-[22px] font-black italic text-[#CC0000] font-serif`                   |Red + italic serif|
+|“GENTLE LITTLEWOMAN” |`text-[22px] font-black uppercase tracking-[0.2em] text-black`              |Wide spacing      |
+|Language row         |`flex items-center gap-3 py-5 mt-2`                                         |                  |
+|Active lang          |`text-sm font-black uppercase text-black`                                   |“EN”              |
+|Divider              |`text-gray-300`                                                             |“/”               |
+|Inactive lang        |`text-sm font-normal uppercase text-gray-400`                               |“TH”              |
+|Bottom links grid    |`grid grid-cols-2 gap-x-8 gap-y-4 border-t border-gray-200 pt-6 mt-4`       |                  |
+|Bottom link          |`text-xs uppercase tracking-widest font-semibold text-gray-700`             |                  |
+
+-----
+
+## 3. HOME PAGE (`home.png`)
+
+### Section order
+
+1. Navbar
+1. Hero Banner Carousel
+1. New Arrivals Grid
+1. Promotional Carousel
+1. About Us
+1. Feature Icons (3 cols)
+1. Footer
+
+-----
+
+### 3a. Hero Banner Carousel
+
+```html
+<section class="relative w-full overflow-hidden">
+  <div class="w-full h-[50vw] max-h-[600px] min-h-[260px] relative">
+```
+
+|Element     |Classes                                                                                                                 |Notes                   |
+|------------|------------------------------------------------------------------------------------------------------------------------|------------------------|
+|Slide image |`w-full h-full object-cover object-center`                                                                              |Full-bleed fashion photo|
+|Overlay text|`absolute bottom-1/2 translate-y-1/2 left-1/3 text-white`                                                               |Centered-left           |
+|Headline    |`text-3xl md:text-5xl lg:text-6xl font-light tracking-widest text-white`                                                |“NO.1 Luxury Brandname” |
+|Prev arrow  |`absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/70 rounded-full flex items-center justify-center text-black` |                        |
+|Next arrow  |`absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/70 rounded-full flex items-center justify-center text-black`|                        |
+|Dots row    |`absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2`                                                                |                        |
+|Dot inactive|`w-2 h-2 rounded-full bg-white/50`                                                                                      |                        |
+|Dot active  |`w-2 h-2 rounded-full bg-white`                                                                                         |                        |
+
+-----
+
+### 3b. New Arrivals Section (Home)
+
+```html
+<section class="py-12 lg:py-16 bg-white">
+  <div class="container mx-auto px-4">
+    <h2 class="text-center text-base lg:text-lg font-semibold uppercase tracking-[0.3em] mb-8 lg:mb-10">NEW ARRIVALS</h2>
+    <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4 lg:gap-5">
+```
+
+**Product Card (Home)**
+
+|Element                   |Classes                                                                                                                                                             |Notes                       |
+|--------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------|
+|Card wrapper              |`group relative cursor-pointer`                                                                                                                                     |                            |
+|Image wrapper             |`relative overflow-hidden aspect-[3/4] bg-gray-100`                                                                                                                 |Portrait ratio              |
+|Product image             |`w-full h-full object-cover group-hover:scale-105 transition-transform duration-500`                                                                                |                            |
+|Wishlist btn (top-right)  |`absolute top-2 right-2 w-7 h-7 flex items-center justify-center`                                                                                                   |Heart icon, visible on hover|
+|“ADD TO CART” hover bar   |`absolute bottom-0 left-0 right-0 bg-white/90 py-2 text-center text-xs font-semibold tracking-widest uppercase opacity-0 group-hover:opacity-100 transition-opacity`|                            |
+|Sale badge (top-right alt)|`absolute top-2 right-2 w-7 h-7 bg-black rounded-full flex items-center justify-center`                                                                             |+ icon, red dot indicator   |
+|Category label            |`text-[10px] uppercase tracking-widest text-gray-400 mt-2`                                                                                                          |“Dresses”                   |
+|Product name              |`text-sm font-normal text-gray-800 mt-0.5 leading-snug`                                                                                                             |                            |
+|Price row                 |`flex items-center gap-2 mt-1`                                                                                                                                      |                            |
+|Original price            |`text-sm text-gray-400 line-through`                                                                                                                                |                            |
+|Sale price                |`text-sm font-semibold text-red-600`                                                                                                                                |                            |
+|Regular price             |`text-sm font-normal text-gray-800`                                                                                                                                 |                            |
+
+**View More Button**
+
+```html
+<div class="flex justify-center mt-8">
+  <button class="border border-gray-400 text-xs uppercase tracking-widest px-8 py-3 hover:bg-black hover:text-white hover:border-black transition-colors">
+    VIEW MORE →
+  </button>
+</div>
+```
+
+-----
+
+### 3c. Promotional Carousel (`carousel_product_01.png`)
+
+Split layout: **image left / text right**
+
+```html
+<section class="py-12 lg:py-16 bg-white">
+  <div class="container mx-auto px-4">
+    <div class="flex flex-col md:flex-row items-center gap-8 lg:gap-16">
+```
+
+|Element       |Classes                                                                                                                                      |Notes                                        |
+|--------------|---------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------|
+|Left image    |`w-full md:w-1/2 lg:w-5/12 aspect-square object-cover`                                                                                       |Square product photo                         |
+|Left arrow    |`absolute left-0 top-1/2 -translate-y-1/2 w-8 h-8 border border-gray-300 rounded-full flex items-center justify-center text-gray-400 text-sm`|                                             |
+|Right arrow   |Same, `right-0`                                                                                                                              |                                             |
+|Right content |`w-full md:w-1/2 lg:w-7/12 flex flex-col gap-4`                                                                                              |                                             |
+|Headline      |`text-2xl lg:text-3xl font-light leading-snug text-black`                                                                                    |e.g. “A bracelet with timeless elegance.”    |
+|Body paragraph|`text-sm lg:text-base text-gray-600 leading-relaxed`                                                                                         |2 paragraphs with `mb-4` gap                 |
+|CTA button    |`inline-block bg-gray-800 text-white text-xs uppercase tracking-widest px-6 py-3 mt-4 hover:bg-black transition-colors`                      |“FIND YOUR STYLE” — rounded-sm               |
+|Dots row      |`flex gap-2 mt-6`                                                                                                                            |                                             |
+|Dot           |`w-2 h-2 rounded-full`                                                                                                                       |filled = `bg-gray-800`, empty = `bg-gray-300`|
+
+-----
+
+### 3d. About Us Section
+
+```html
+<section class="py-12 lg:py-16 bg-gray-50">
+  <div class="container mx-auto px-4 text-center max-w-2xl">
+    <h2 class="text-sm uppercase tracking-[0.3em] font-semibold mb-4">ABOUT US</h2>
+    <h3 class="text-base lg:text-lg font-semibold uppercase tracking-wide mb-4">100% AUTHENTIC BRANDED ITEMS FROM JAPAN</h3>
+    <p class="text-xs lg:text-sm text-gray-500 uppercase tracking-wider leading-relaxed">
+      CAREFULLY SELECTED AND IMPORTED DIRECTLY FROM JAPAN...
+    </p>
+  </div>
+</section>
+```
+
+-----
+
+### 3e. Feature Icons Row
+
+```html
+<section class="py-10 lg:py-12 bg-white border-t border-gray-100">
+  <div class="container mx-auto px-4">
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-8 text-center">
+```
+
+|Element     |Classes                              |Notes                        |
+|------------|-------------------------------------|-----------------------------|
+|Feature item|`flex flex-col items-center gap-3`   |                             |
+|Icon        |`w-10 h-10 text-gray-700`            |SVG: truck / headset / shield|
+|Title       |`text-sm font-semibold text-black`   |e.g. “Fast And Free Delivery”|
+|Description |`text-xs text-gray-500 max-w-[160px]`|                             |
+
+-----
+
+## 4. PRODUCT LIST PAGES (`page_new-arrivals.png`, `page_bags.png`, `page_accessories.png`)
+
+All 3 pages share identical layout structure.
+
+### Section Order
+
+1. Navbar
+1. Hero Banner (page title)
+1. Sort/View/Filter toolbar
+1. Product Grid
+1. “SHOW MORE” button
+1. Footer
+
+-----
+
+### 4a. Page Hero Banner
+
+```html
+<section class="relative w-full h-[200px] md:h-[260px] lg:h-[300px] overflow-hidden">
+  <img class="w-full h-full object-cover object-center" />
+  <div class="absolute inset-0 flex items-center justify-center bg-black/10">
+    <h1 class="text-white text-3xl md:text-4xl lg:text-5xl font-light tracking-[0.3em] uppercase">TITLE</h1>
+  </div>
+</section>
+```
+
+-----
+
+### 4b. Toolbar
+
+```html
+<div class="container mx-auto px-4 py-4 flex items-center justify-between border-b border-gray-200">
+```
+
+|Element            |Classes                                                                                                     |Notes              |
+|-------------------|------------------------------------------------------------------------------------------------------------|-------------------|
+|Left: Sort dropdown|`flex items-center gap-2 text-xs uppercase tracking-widest text-gray-600 cursor-pointer`                    |“DEFAULT SORTING ▾”|
+|Right group        |`flex items-center gap-4`                                                                                   |                   |
+|VIEW label         |`text-xs uppercase tracking-widest text-gray-400`                                                           |                   |
+|View number btns   |`flex gap-2` → each `text-xs text-gray-400 hover:text-black` — active: `text-black font-semibold underline` |“2 3 4”            |
+|Filter btn         |`flex items-center gap-1 text-xs uppercase tracking-widest text-gray-600 border border-gray-300 px-3 py-1.5`|“⚙ FILTER”         |
+
+-----
+
+### 4c. Product Grid (List Pages)
+
+```html
+<div class="container mx-auto px-4 py-6">
+  <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 lg:gap-5">
+```
+
+> Default view = 4 cols on desktop (`lg:grid-cols-4`), 5 cols on xl (`xl:grid-cols-5`)
+> User can switch to 2 or 3 cols via VIEW buttons
+
+**Product Card (List Page)** — same as home card, see §3b
+
+-----
+
+### 4d. Show More Button
+
+```html
+<div class="flex justify-center py-10">
+  <button class="text-xs uppercase tracking-widest border-b border-black pb-0.5 hover:opacity-60 transition-opacity">
+    SHOW MORE
+  </button>
+</div>
+```
+
+-----
+
+### 4e. Product Card — HOT Badge variant (`home-product-list-desktop.jpeg`)
+
+```html
+<span class="absolute top-2 left-2 bg-red-600 text-white text-[10px] font-bold uppercase tracking-wide px-2 py-0.5">
+  HOT
+</span>
+```
+
+|Element  |Classes                                                                                                            |
+|---------|-------------------------------------------------------------------------------------------------------------------|
+|Badge    |`absolute top-2 left-2 bg-red-600 text-white text-[10px] font-bold uppercase px-2 py-0.5`                          |
+|THB price|`text-sm text-gray-500 line-through` + `text-sm font-semibold text-black ml-1` + `text-[10px] text-gray-400 ml-0.5`|
+
+-----
+
+## 5. PRODUCT LIST — MOBILE LAYOUT (`product-list-layout-mobile_page-0001.jpeg`)
+
+```html
+<!-- Promo banner (top of page, full width) -->
+<div class="w-full relative overflow-hidden">
+  <img class="w-full h-40 object-cover object-top" />
+  <div class="absolute top-2 left-3">
+    <p class="text-2xl font-black uppercase text-[#E91E8C] leading-none">SPECIAL</p>
+    <p class="text-2xl font-black uppercase text-[#E91E8C] leading-none">PRICE</p>
+    <p class="text-sm font-bold uppercase text-[#E91E8C]">UP TO 40% OFF</p>
+  </div>
+</div>
+
+<!-- 2-col grid -->
+<div class="grid grid-cols-2 gap-0">
+```
+
+|Element       |Classes                                                                   |Notes                           |
+|--------------|--------------------------------------------------------------------------|--------------------------------|
+|Card          |`flex flex-col`                                                           |No gap between cards, full bleed|
+|Image         |`w-full aspect-[3/4] object-cover object-top`                             |Tall portrait                   |
+|Sale badge    |`absolute top-0 right-0 bg-red-600 text-white text-xs font-bold px-2 py-1`|“-70%”                          |
+|Product name  |`text-[11px] font-semibold uppercase tracking-wide mt-2 px-2`             |                                |
+|Price row     |`flex items-center gap-2 px-2 pb-3`                                       |                                |
+|Original price|`text-[11px] text-gray-400 line-through`                                  |                                |
+|Sale price    |`text-[11px] font-bold text-[#E91E8C]`                                    |Hot pink                        |
+|Currency      |`text-[11px] text-gray-400`                                               |“THB”                           |
+|Color swatches|`flex gap-1 px-2 pb-2` → `w-3 h-3 bg-black`                               |Small square color dots         |
+
+-----
+
+## 6. PRODUCT DETAIL PAGE (`product-detail.png`)
+
+### Section Order
+
+1. Navbar
+1. Breadcrumb
+1. Product Hero (gallery + info)
+1. Description / Additional Info / Reviews (tabs)
+1. Related Products
+1. Footer
+
+-----
+
+### 6a. Breadcrumb
+
+```html
+<div class="container mx-auto px-4 py-3 flex items-center justify-between">
+  <nav class="text-xs uppercase tracking-widest text-gray-400">
+    HOME / THE SHOP
+  </nav>
+  <div class="flex items-center gap-3 text-xs uppercase tracking-widest text-gray-500">
+    <span>‹ PREV</span>
+    <span>NEXT ›</span>
+  </div>
+</div>
+```
+
+-----
+
+### 6b. Product Hero
+
+```html
+<section class="container mx-auto px-4 py-6">
+  <div class="flex flex-col lg:flex-row gap-8 lg:gap-12">
+```
+
+**Left: Image Gallery**
+
+|Element           |Classes                                                                                                                      |Notes         |
+|------------------|-----------------------------------------------------------------------------------------------------------------------------|--------------|
+|Thumbnail column  |`hidden lg:flex flex-col gap-2 w-20 flex-shrink-0`                                                                           |4 small thumbs|
+|Thumbnail         |`w-full aspect-square object-cover cursor-pointer border border-transparent hover:border-gray-400`                           |              |
+|Active thumbnail  |`border border-black`                                                                                                        |              |
+|Main image wrapper|`relative flex-1 aspect-square lg:aspect-[4/5] overflow-hidden bg-gray-50`                                                   |              |
+|Main image        |`w-full h-full object-cover`                                                                                                 |              |
+|Prev/Next arrows  |`absolute top-1/2 -translate-y-1/2 left-2 / right-2 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-sm`|              |
+|Expand icon       |`absolute bottom-3 right-3 w-7 h-7 bg-white flex items-center justify-center`                                                |⤢ icon        |
+
+**Right: Product Info**
+
+|Element             |Classes                                                                                                                   |Notes                |
+|--------------------|--------------------------------------------------------------------------------------------------------------------------|---------------------|
+|Product title       |`text-xl lg:text-2xl font-light text-black leading-snug`                                                                  |                     |
+|Price               |`text-xl font-semibold text-black mt-2`                                                                                   |“$449”               |
+|Description snippet |`text-sm text-gray-500 leading-relaxed mt-3 mb-5`                                                                         |Short lorem paragraph|
+|Quantity + Add row  |`flex items-center gap-3 mt-5`                                                                                            |                     |
+|Qty wrapper         |`flex items-center border border-gray-300`                                                                                |                     |
+|Qty btn             |`w-9 h-10 flex items-center justify-center text-black hover:bg-gray-100`                                                  |“−” / “+”            |
+|Qty input           |`w-10 h-10 text-center text-sm border-x border-gray-300 outline-none`                                                     |                     |
+|Add to Cart btn     |`flex-1 h-10 bg-black text-white text-xs uppercase tracking-widest font-semibold hover:bg-gray-900 transition-colors px-6`|                     |
+|Wishlist + Share row|`flex items-center gap-4 mt-3`                                                                                            |                     |
+|Wishlist btn        |`flex items-center gap-1 text-xs text-gray-500 uppercase tracking-widest`                                                 |♡ icon               |
+|Share btn           |`flex items-center gap-1 text-xs text-gray-500 uppercase tracking-widest`                                                 |↗ icon               |
+|Meta info           |`mt-6 text-xs text-gray-400 space-y-1`                                                                                    |SKU, CATEGORIES, TAGS|
+|Meta label          |`font-semibold uppercase`                                                                                                 |                     |
+
+-----
+
+### 6c. Tabs (Description / Additional Info / Reviews)
+
+```html
+<div class="container mx-auto px-4 mt-12">
+  <!-- Tab nav -->
+  <div class="flex border-b border-gray-200 gap-8">
+    <button class="text-xs uppercase tracking-widest pb-3 border-b-2 border-transparent text-gray-400 hover:text-black">DESCRIPTION</button>
+    <button class="text-xs uppercase tracking-widest pb-3 border-b-2 border-transparent text-gray-400 hover:text-black">ADDITIONAL INFORMATION</button>
+    <button class="text-xs uppercase tracking-widest pb-3 border-b-2 border-black text-black font-semibold">REVIEWS (3)</button>
+  </div>
+```
+
+**Description Tab Content**
+
+|Element           |Classes                                                             |
+|------------------|--------------------------------------------------------------------|
+|Section heading   |`text-xs uppercase tracking-widest text-gray-600 mt-8 mb-1`         |
+|Sub heading       |`text-base font-semibold text-black mb-3`                           |
+|Body text         |`text-sm text-gray-600 leading-relaxed`                             |
+|2-col feature list|`grid grid-cols-1 md:grid-cols-2 gap-6 mt-6`                        |
+|Feature heading   |`text-xs uppercase tracking-widest text-gray-700 mb-2 font-semibold`|
+|Feature item      |`text-sm text-gray-500 flex items-start gap-2 mb-1`                 |
+|Bullet icon       |`text-gray-400 mt-0.5 text-xs`                                      |
+
+**Additional Information Tab**
+
+```html
+<table class="w-full mt-6 text-sm">
+  <tbody class="divide-y divide-gray-100">
+    <tr class="py-3">
+      <td class="py-3 pr-8 text-xs font-semibold uppercase tracking-wider text-gray-700 w-32">Weight</td>
+      <td class="py-3 text-sm text-gray-600">125 kg</td>
+    </tr>
+    <!-- Dimensions, Size, Color, Storage -->
+  </tbody>
+</table>
+```
+
+-----
+
+### 6d. Reviews Section
+
+```html
+<div class="mt-10 space-y-6">
+  <!-- Review item -->
+  <div class="flex gap-4">
+    <div class="w-10 h-10 rounded-full bg-black flex-shrink-0"></div>
+    <div class="flex-1">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-semibold text-black">Janice Miller</p>
+          <p class="text-xs text-gray-400">April 06, 2020</p>
+        </div>
+        <div class="flex gap-0.5 text-yellow-400 text-sm">★★★★★</div>
+      </div>
+      <p class="text-sm text-gray-600 mt-2 leading-relaxed">...</p>
+    </div>
+  </div>
+</div>
+```
+
+**Review Form**
+
+|Element        |Classes                                                                                     |
+|---------------|--------------------------------------------------------------------------------------------|
+|Form heading   |`text-sm font-semibold text-black mt-10 mb-1`                                               |
+|Sub note       |`text-xs text-gray-400 mb-4`                                                                |
+|Star rating row|`flex gap-1 text-yellow-400 text-lg mb-4`                                                   |
+|Textarea       |`w-full border border-gray-300 p-3 text-sm resize-none h-28 outline-none focus:border-black`|
+|Input          |`w-full border border-gray-300 px-3 py-2.5 text-sm outline-none focus:border-black mt-2`    |
+|Checkbox row   |`flex items-start gap-2 text-xs text-gray-500 mt-2`                                         |
+|Submit btn     |`mt-4 bg-black text-white text-xs uppercase tracking-widest px-8 py-3 hover:bg-gray-900`    |
+
+-----
+
+### 6e. Related Products
+
+```html
+<section class="container mx-auto px-4 mt-14 mb-12">
+  <h2 class="text-sm uppercase tracking-[0.3em] font-semibold mb-6">RELATED PRODUCTS</h2>
+  <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4 lg:gap-5">
+    <!-- Product cards — same as §3b -->
+  </div>
+</section>
+```
+
+-----
+
+## 7. FOOTER
+
+```html
+<footer class="bg-[#1A1A1A] text-white">
+  <div class="container mx-auto px-4 py-12 lg:py-16">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8">
+```
+
+|Column               |Content                       |
+|---------------------|------------------------------|
+|Col 1 (lg:col-span-1)|Logo + address + email + phone|
+|Col 2                |COMPANY links                 |
+|Col 3                |SHOP links                    |
+|Col 4                |HELP links                    |
+|Col 5                |SUBSCRIBE email form          |
+
+**Footer Column Header**
+
+```html
+<h4 class="text-xs uppercase tracking-[0.2em] font-semibold mb-4 text-white">COMPANY</h4>
+```
+
+**Footer Link**
+
+```html
+<a class="block text-xs text-gray-400 mb-2 hover:text-white transition-colors">About Us</a>
+```
+
+**Logo block (footer)**
+
+```html
+<div class="mb-4">
+  <p class="text-lg font-bold tracking-tight">m3</p>
+  <p class="text-[9px] tracking-widest uppercase text-gray-500">MBbrandname</p>
+</div>
+<p class="text-xs text-gray-400 leading-relaxed mt-3 max-w-[200px]">
+  1418 River Drive, Suite 35 Cottonhall, CA 9622 United States
+</p>
+```
+
+**Subscribe Form**
+
+```html
+<p class="text-xs text-gray-400 mb-3">Be the first to get the latest news about trends, promotions, and much more!</p>
+<div class="flex">
+  <input class="flex-1 bg-white/10 border border-white/20 px-3 py-2 text-xs text-white placeholder-gray-500 outline-none" placeholder="Your email address" />
+  <button class="bg-white text-black text-xs font-semibold px-4 py-2 uppercase tracking-widest">JOIN</button>
+</div>
+```
+
+**Payment logos row**
+
+```html
+<div class="flex items-center gap-2 mt-4">
+  <!-- Discover, Mastercard, PayPal, Skrill, Visa SVG badges -->
+</div>
+```
+
+**Footer Bottom Bar**
+
+```html
+<div class="border-t border-white/10 mt-10 pt-5 flex flex-col sm:flex-row items-center justify-between gap-3">
+  <p class="text-xs text-gray-500">©2020 Uomo</p>
+  <!-- Social icons row -->
+  <div class="flex gap-4">
+    <!-- Facebook, Twitter, Instagram, YouTube, Pinterest -->
+    <a class="text-gray-500 hover:text-white w-5 h-5">...</a>
+  </div>
+  <!-- Right: locale + currency selectors -->
+  <div class="flex items-center gap-4 text-xs text-gray-400">
+    <span>United Kingdom | English ⌄</span>
+    <span>$ USD ⌄</span>
+  </div>
+</div>
+```
+
+-----
+
+## 8. COOKIE BANNER (`cookie_banner.png`)
+
+Fixed bottom bar, full width.
+
+```html
+<div class="fixed bottom-0 left-0 right-0 z-[200] bg-white border-t border-gray-200 shadow-lg">
+  <div class="container mx-auto px-4 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+```
+
+|Element                   |Classes                                                                                                            |Notes|
+|--------------------------|-------------------------------------------------------------------------------------------------------------------|-----|
+|Text wrapper              |`flex-1 max-w-2xl`                                                                                                 |     |
+|Cookie text               |`text-xs text-gray-700 leading-relaxed uppercase tracking-wide`                                                    |     |
+|“PRIVACY POLICY >”        |`text-xs text-gray-500 underline uppercase tracking-wide mt-1 block`                                               |     |
+|Right group               |`flex flex-col sm:flex-row items-end sm:items-center gap-3`                                                        |     |
+|“ACCEPT ALL” btn          |`bg-black text-white text-xs uppercase tracking-widest font-semibold px-6 py-3 whitespace-nowrap hover:bg-gray-900`|     |
+|“PERSONALIZE MY CHOICES >”|`text-xs text-gray-500 uppercase tracking-wide underline whitespace-nowrap`                                        |     |
+
+-----
+
+## 9. MANAGE CONSENT MODAL (`manage_consent.png`)
+
+Centered overlay modal.
+
+```html
+<div class="fixed inset-0 z-[300] bg-black/50 flex items-center justify-center px-4">
+  <div class="bg-white w-full max-w-md p-6 lg:p-8 shadow-2xl">
+```
+
+|Element              |Classes                                                                                                 |Notes                      |
+|---------------------|--------------------------------------------------------------------------------------------------------|---------------------------|
+|Modal title          |`text-sm font-black uppercase tracking-widest text-black mb-6`                                          |“MANAGE CONSENT PREFERENCE”|
+|Section header       |`text-xs font-black uppercase tracking-widest text-black`                                               |                           |
+|“ALWAYS ACTIVE” label|`text-xs font-semibold uppercase tracking-widest text-gray-400`                                         |Right-aligned              |
+|Divider              |`border-t border-gray-200 my-4`                                                                         |                           |
+|Description text     |`text-xs text-gray-600 leading-relaxed mt-2`                                                            |                           |
+|Toggle (on)          |`relative inline-flex w-10 h-5 bg-green-500 rounded-full cursor-pointer`                                |With white circle          |
+|Toggle circle        |`absolute top-0.5 right-0.5 w-4 h-4 bg-white rounded-full`                                              |                           |
+|Accept All btn       |`mt-6 w-full bg-black text-white text-xs uppercase tracking-widest font-semibold py-3 hover:bg-gray-900`|                           |
+
+**Cookie sections order:**
+
+1. STRICT NECESSARY COOKIES — “ALWAYS ACTIVE” (no toggle)
+1. PERFORMANCE COOKIES — toggle ON (green)
+1. ADVERTISING AND MARKETING COOKIES — toggle ON (green)
+
+-----
+
+## 10. PROMOTIONAL MODAL (`promotional_modal.png`)
+
+Centered overlay modal — split layout.
+
+```html
+<div class="fixed inset-0 z-[300] bg-black/70 flex items-center justify-center px-4">
+  <div class="bg-white w-full max-w-2xl flex overflow-hidden shadow-2xl relative">
+```
+
+|Element         |Classes                                                                                                                                       |Notes                                               |
+|----------------|----------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------|
+|Close btn       |`absolute top-3 right-3 z-10 text-gray-400 hover:text-black text-xl`                                                                          |“✕”                                                 |
+|Left image panel|`hidden sm:block w-1/2 flex-shrink-0`                                                                                                         |2 stacked portrait images                           |
+|Image 1         |`w-full h-1/2 object-cover`                                                                                                                   |                                                    |
+|Image 2         |`w-full h-1/2 object-cover`                                                                                                                   |                                                    |
+|Right content   |`flex-1 flex flex-col items-center justify-center p-8 lg:p-12 text-center`                                                                    |                                                    |
+|Headline        |`text-3xl lg:text-4xl font-light text-black tracking-wide mb-3`                                                                               |“You deserve it”                                    |
+|Sub text        |`text-xs uppercase tracking-widest text-gray-500 leading-relaxed mb-8`                                                                        |“A SPECIAL OFFER JUST FOR YOU AND YOUR FIRST ORDER.”|
+|CTA button      |`w-full border border-black text-black text-xs uppercase tracking-widest font-semibold py-4 hover:bg-black hover:text-white transition-colors`|“CLAIM OFFER”                                       |
+|Decline link    |`mt-4 text-xs uppercase tracking-widest text-gray-400 hover:text-black`                                                                       |“NO THANKS”                                         |
+
+-----
+
+## 11. DESIGN TOKENS SUMMARY
+
+```css
+:root {
+  /* Colors */
+  --color-black:       #1A1A1A;
+  --color-white:       #FFFFFF;
+  --color-gray-bg:     #F5F5F5;
+  --color-gray-text:   #6B6B6B;
+  --color-gray-border: #E0E0E0;
+  --color-sale-red:    #CC0000;
+  --color-hot-pink:    #E91E8C;
+  --color-toggle-on:   #22C55E;
+
+  /* Typography */
+  --font-display: /* serif or custom */ ;
+  --font-body: 'font-sans';
+
+  /* Spacing (Tailwind scale) */
+  --header-h-mobile: 56px;   /* h-14 */
+  --header-h-desktop: 64px;  /* h-16 */
+
+  /* Grid gaps */
+  --grid-gap-mobile:  16px;  /* gap-4 */
+  --grid-gap-desktop: 20px;  /* gap-5 */
+
+  /* Border radius */
+  --radius-btn: 0;   /* All buttons are sharp (no rounding) */
+  --radius-badge: 0; /* Badges are sharp */
+
+  /* Z-index layers */
+  --z-header:  50;
+  --z-modal:   300;
+  --z-cookie:  200;
+  --z-overlay: 100;
+}
+```
+
+-----
+
+## 12. RESPONSIVE BREAKPOINT SUMMARY
+
+|Breakpoint      |Tailwind|Viewport   |Key Changes                                       |
+|----------------|--------|-----------|--------------------------------------------------|
+|Default (mobile)|—       |< 640px    |1-col nav hidden, 2-col grid, stacked sections    |
+|`sm:`           |640px+  |640–767px  |2-col product grid, side-by-side feature icons    |
+|`md:`           |768px+  |768–1023px |3–4 col grid, split carousel layout, footer 2-col |
+|`lg:`           |1024px+ |1024–1279px|Full navbar visible, 4-col grid, full footer 5-col|
+|`xl:`           |1280px+ |1280px+    |5-col product grid, wider hero text               |
+
+-----
+
+## 13. INTERACTION STATES
+
+|Component        |Hover                                   |Active                    |Focus                                     |
+|-----------------|----------------------------------------|--------------------------|------------------------------------------|
+|Nav links        |`opacity: 0.7` or underline             |font-medium               |outline-none                              |
+|Product card     |Image scale 1.05, show “Add to Cart” bar|—                         |ring-2 ring-black                         |
+|Buttons (black)  |`bg-gray-900`                           |`bg-gray-800 scale-[0.98]`|`outline-2 outline-offset-2 outline-black`|
+|Buttons (outline)|`bg-black text-white`                   |Same                      |Same                                      |
+|Wishlist icon    |Fill red `#CC0000`                      |—                         |—                                         |
+|Toggle           |Slide circle + color change             |—                         |ring-2                                    |
+|Footer links     |`text-white`                            |—                         |—                                         |
+
+-----
+
+*End of spec. All measurements and classes reference Tailwind CSS v3 utility classes with `container mx-auto px-4` base layout.*

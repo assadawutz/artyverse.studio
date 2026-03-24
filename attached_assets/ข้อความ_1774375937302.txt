@@ -1,0 +1,2037 @@
+#!/usr/bin/env bash
+set -e
+
+PROJECT=“mb-brandname”
+DIR=”./$PROJECT”
+
+echo “”
+echo “╔══════════════════════════════════════════╗”
+echo “║   MB BRANDNAME v12.0 — OneClick Build   ║”
+echo “╚══════════════════════════════════════════╝”
+echo “”
+
+command -v node >/dev/null 2>&1 || { echo “❌  Node.js not found → https://nodejs.org”; exit 1; }
+NODE_MAJOR=$(node -e “console.log(process.versions.node.split(’.’)[0])”)
+[ “$NODE_MAJOR” -lt 18 ] && { echo “❌  Node 18+ required (found v$NODE_MAJOR)”; exit 1; }
+echo “✅  Node $(node -v)”
+
+mkdir -p “$DIR”/{pages/product,components,contexts,data,styles,public}
+
+# ══════════════════════════════════════════════════════════════════
+
+# package.json
+
+# ══════════════════════════════════════════════════════════════════
+
+cat > “$DIR/package.json” << ‘EOF’
+{
+“name”: “mb-brandname”,
+“version”: “1.0.0”,
+“private”: true,
+“scripts”: { “dev”: “next dev”, “build”: “next build”, “start”: “next start” },
+“dependencies”: {
+“next”: “15.0.0”,
+“react”: “18.3.1”,
+“react-dom”: “18.3.1”,
+“lucide-react”: “^0.383.0”,
+“clsx”: “^2.1.1”
+},
+“devDependencies”: {
+“typescript”: “^5.5.0”,
+“@types/node”: “^20.0.0”,
+“@types/react”: “^18.3.0”,
+“@types/react-dom”: “^18.3.0”,
+“tailwindcss”: “^4.0.0”,
+“@tailwindcss/postcss”: “^4.0.0”,
+“autoprefixer”: “^10.4.0”
+}
+}
+EOF
+
+# ══════════════════════════════════════════════════════════════════
+
+# tsconfig.json
+
+# ══════════════════════════════════════════════════════════════════
+
+cat > “$DIR/tsconfig.json” << ‘EOF’
+{
+“compilerOptions”: {
+“target”: “ES2017”, “lib”: [“dom”,“dom.iterable”,“esnext”],
+“allowJs”: true, “skipLibCheck”: true, “strict”: true, “noEmit”: true,
+“esModuleInterop”: true, “module”: “esnext”, “moduleResolution”: “bundler”,
+“resolveJsonModule”: true, “isolatedModules”: true, “jsx”: “preserve”,
+“incremental”: true, “plugins”: [{“name”:“next”}], “paths”: {”@/*”:[”./*”]}
+},
+“include”: [“next-env.d.ts”,”**/*.ts”,”**/*.tsx”,”.next/types/**/*.ts”],
+“exclude”: [“node_modules”]
+}
+EOF
+
+# ══════════════════════════════════════════════════════════════════
+
+# next.config.ts
+
+# ══════════════════════════════════════════════════════════════════
+
+cat > “$DIR/next.config.ts” << ‘EOF’
+import type { NextConfig } from ‘next’;
+const nextConfig: NextConfig = {
+images: { remotePatterns: [{ protocol:‘https’, hostname:‘images.unsplash.com’ }] }
+};
+export default nextConfig;
+EOF
+
+# ══════════════════════════════════════════════════════════════════
+
+# postcss.config.ts
+
+# ══════════════════════════════════════════════════════════════════
+
+cat > “$DIR/postcss.config.ts” << ‘EOF’
+const config = { plugins: { ‘@tailwindcss/postcss’: {}, autoprefixer: {} } };
+export default config;
+EOF
+
+# ══════════════════════════════════════════════════════════════════
+
+# styles/globals.css  — Figma-exact tokens
+
+# ══════════════════════════════════════════════════════════════════
+
+cat > “$DIR/styles/globals.css” << ‘EOF’
+@import “tailwindcss”;
+
+@theme {
+–font-jost: ‘Jost’, sans-serif;
+–font-julius: ‘Julius Sans One’, sans-serif;
+–color-head:        #060606;
+–color-second:      #EEEEEE;
+–color-third:       #B9A16B;
+–color-red:         #C32929;
+–color-red-alt:     #D6001C;
+–color-footer:      #060606;
+–color-footer-muted:#E4E4E4;
+–color-border:      #E4E4E4;
+–color-panel:       #F9F9F9;
+–color-panel-2:     #F5F4F9;
+–color-panel-3:     #F8F8F8;
+–color-panel-4:     #F1F1F1;
+–color-gray-mid:    #636363;
+–color-gray-nav:    #767676;
+–color-slide-bg:    #F5EBE0;
+}
+
+html { scroll-behavior: smooth; }
+*, *::before, *::after { box-sizing: border-box; }
+body { font-family: ‘Jost’, sans-serif; font-size: 14px; line-height: 1.7; color: #060606; margin: 0; }
+
+@keyframes ticker-scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+.ticker-scroll { animation: ticker-scroll 20s linear infinite; }
+
+@keyframes reveal-up { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+.reveal { animation: reveal-up 0.6s ease forwards; }
+
+@keyframes fade-in { from { opacity:0; } to { opacity:1; } }
+.fade-in { animation: fade-in 0.3s ease forwards; }
+
+@keyframes slide-in-right { from { transform:translateX(100%); } to { transform:translateX(0); } }
+.slide-in-right { animation: slide-in-right 0.3s ease forwards; }
+EOF
+
+# ══════════════════════════════════════════════════════════════════
+
+# data/products.ts  — LOCKED catalog, 12 items, USD
+
+# ══════════════════════════════════════════════════════════════════
+
+cat > “$DIR/data/products.ts” << ‘EOF’
+export type Category = ‘new-arrivals’ | ‘bags’ | ‘accessories’;
+
+export interface Product {
+id: string; slug: string; title: string;
+price: number; compareAtPrice: number | null;
+category: Category; currency: string; inventory: number;
+images: string[]; rating: number; reviews: number;
+tags: string[]; description: string;
+}
+
+export const products: Product[] = [
+{ id:‘p_mb_001’, slug:‘mb-signature-necklace’, title:‘MB Signature Necklace’,
+price:429, compareAtPrice:599, category:‘new-arrivals’, currency:‘USD’, inventory:8,
+images:[‘https://images.unsplash.com/photo-1611652022419-a9419f74343d?w=600’,‘https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=600’],
+rating:4.8, reviews:132, tags:[‘necklace’,‘gold’,‘signature’],
+description:‘A meticulously crafted gold-tone necklace embodying timeless elegance. The round pendant adorned with ornate engravings frames the iconic brand emblem.’ },
+{ id:‘p_mb_002’, slug:‘mb-oval-gem-necklace’, title:‘MB Oval Gem Necklace’,
+price:289, compareAtPrice:null, category:‘new-arrivals’, currency:‘USD’, inventory:12,
+images:[‘https://images.unsplash.com/photo-1630019852942-f89202989a59?w=600’],
+rating:4.6, reviews:88, tags:[‘necklace’,‘gem’,‘oval’],
+description:‘Delicate oval gem pendant on fine gold chain. Understated luxury for everyday wear.’ },
+{ id:‘p_mb_003’, slug:‘mb-gold-minimal-watch’, title:‘MB Gold Minimal Watch’,
+price:449, compareAtPrice:null, category:‘new-arrivals’, currency:‘USD’, inventory:5,
+images:[‘https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600’],
+rating:4.9, reviews:204, tags:[‘watch’,‘gold’,‘minimal’],
+description:‘A sleek minimalist timepiece with gold case and clean white dial. Precision Swiss movement.’ },
+{ id:‘p_mb_004’, slug:‘mb-pearl-bracelet’, title:‘MB Pearl Bracelet’,
+price:99, compareAtPrice:129, category:‘new-arrivals’, currency:‘USD’, inventory:20,
+images:[‘https://images.unsplash.com/photo-1573408301185-9519f94816b5?w=600’],
+rating:4.5, reviews:67, tags:[‘bracelet’,‘pearl’,‘classic’],
+description:‘Lustrous freshwater pearls set on a delicate gold chain. A timeless piece for any occasion.’ },
+{ id:‘p_mb_005’, slug:‘mb-blue-leather-handbag’, title:‘MB Blue Leather Handbag’,
+price:599, compareAtPrice:null, category:‘bags’, currency:‘USD’, inventory:6,
+images:[‘https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600’,‘https://images.unsplash.com/photo-1594938298603-c8148c4b1e50?w=600’],
+rating:4.7, reviews:156, tags:[‘bag’,‘leather’,‘blue’,‘handbag’],
+description:‘Supple full-grain leather in a striking cobalt blue. Structured silhouette with gold-tone hardware.’ },
+{ id:‘p_mb_006’, slug:‘mb-minimal-black-tote’, title:‘MB Minimal Black Tote’,
+price:329, compareAtPrice:null, category:‘bags’, currency:‘USD’, inventory:15,
+images:[‘https://images.unsplash.com/photo-1584917865442-de89be371080?w=600’],
+rating:4.8, reviews:231, tags:[‘bag’,‘tote’,‘black’,‘minimal’],
+description:‘A refined everyday tote in smooth black leather. Spacious interior with laptop sleeve and zip pocket.’ },
+{ id:‘p_mb_007’, slug:‘mb-evening-mini-bag’, title:‘MB Evening Mini Bag’,
+price:249, compareAtPrice:null, category:‘bags’, currency:‘USD’, inventory:10,
+images:[‘https://images.unsplash.com/photo-1566150905458-1bf1fc113f0d?w=600’],
+rating:4.6, reviews:94, tags:[‘bag’,‘mini’,‘evening’,‘clutch’],
+description:‘An elegant compact bag for evening occasions. Detachable chain strap and magnetic closure.’ },
+{ id:‘p_mb_008’, slug:‘mb-boutique-collection-bag’, title:‘MB Boutique Collection Bag’,
+price:399, compareAtPrice:null, category:‘bags’, currency:‘USD’, inventory:7,
+images:[‘https://images.unsplash.com/photo-1591561954557-26941169b49e?w=600’],
+rating:4.9, reviews:178, tags:[‘bag’,‘boutique’,‘collection’,‘luxury’],
+description:‘The crown jewel of our collection. Hand-stitched details and premium exotic-grain leather.’ },
+{ id:‘p_mb_009’, slug:‘mb-gold-silver-necklace’, title:‘MB Gold Silver Necklace’,
+price:199, compareAtPrice:null, category:‘accessories’, currency:‘USD’, inventory:18,
+images:[‘https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=600’],
+rating:4.5, reviews:112, tags:[‘necklace’,‘gold’,‘silver’,‘bicolor’],
+description:‘Two-tone gold and silver chain necklace. Versatile layering piece that complements any look.’ },
+{ id:‘p_mb_010’, slug:‘mb-bracelet-ring-set’, title:‘MB Bracelet and Ring Set’,
+price:99, compareAtPrice:null, category:‘accessories’, currency:‘USD’, inventory:25,
+images:[‘https://images.unsplash.com/photo-1603561591411-07134e71a2a9?w=600’],
+rating:4.4, reviews:289, tags:[‘bracelet’,‘ring’,‘set’,‘gift’],
+description:‘Coordinated bracelet and ring set in polished gold-tone. Perfect gift set for someone special.’ },
+{ id:‘p_mb_011’, slug:‘mb-classic-bracelet’, title:‘MB Classic Bracelet’,
+price:62, compareAtPrice:null, category:‘accessories’, currency:‘USD’, inventory:30,
+images:[‘https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=600’],
+rating:4.3, reviews:445, tags:[‘bracelet’,‘classic’,‘everyday’],
+description:‘A refined everyday bracelet with subtle chain links. Adjustable clasp for perfect fit.’ },
+{ id:‘p_mb_012’, slug:‘mb-watch-editorial’, title:‘MB Watch Editorial’,
+price:449, compareAtPrice:null, category:‘accessories’, currency:‘USD’, inventory:4,
+images:[‘https://images.unsplash.com/photo-1587836374828-4dbafa94cf0e?w=600’],
+rating:4.9, reviews:167, tags:[‘watch’,‘editorial’,‘luxury’],
+description:‘Our editorial-featured timepiece. Bold case design with sapphire crystal glass and leather strap.’ }
+];
+EOF
+
+# ══════════════════════════════════════════════════════════════════
+
+# contexts/CartContext.tsx
+
+# ══════════════════════════════════════════════════════════════════
+
+cat > “$DIR/contexts/CartContext.tsx” << ‘EOF’
+import { createContext, useContext, useEffect, useState, ReactNode } from ‘react’;
+export interface CartItem { productId: string; qty: number; }
+interface CartCtx { items: CartItem[]; add:(id:string)=>void; remove:(id:string)=>void; setQty:(id:string,qty:number)=>void; clear:()=>void; total:number; }
+const Ctx = createContext<CartCtx|null>(null);
+const KEY = ‘mb_cart_v1’;
+export function CartProvider({ children }:{ children:ReactNode }) {
+const [items, setItems] = useState<CartItem[]>([]);
+useEffect(() => { try { setItems(JSON.parse(localStorage.getItem(KEY)??”[]”)); } catch { setItems([]); } }, []);
+const save = (next:CartItem[]) => { setItems(next); localStorage.setItem(KEY, JSON.stringify(next)); };
+const add = (id:string) => { const ex=items.find(i=>i.productId===id); save(ex ? items.map(i=>i.productId===id?{…i,qty:i.qty+1}:i) : […items,{productId:id,qty:1}]); };
+const remove = (id:string) => save(items.filter(i=>i.productId!==id));
+const setQty = (id:string,qty:number) => save(items.map(i=>i.productId===id?{…i,qty:Math.max(1,qty)}:i));
+const clear = () => save([]);
+const total = items.reduce((s,i)=>s+i.qty,0);
+return <Ctx.Provider value={{items,add,remove,setQty,clear,total}}>{children}</Ctx.Provider>;
+}
+export const useCart = () => { const c=useContext(Ctx); if(!c) throw new Error(‘useCart outside provider’); return c; };
+EOF
+
+# ══════════════════════════════════════════════════════════════════
+
+# contexts/WishlistContext.tsx
+
+# ══════════════════════════════════════════════════════════════════
+
+cat > “$DIR/contexts/WishlistContext.tsx” << ‘EOF’
+import { createContext, useContext, useEffect, useState, ReactNode } from ‘react’;
+interface WishCtx { ids:string[]; toggle:(id:string)=>void; has:(id:string)=>boolean; }
+const Ctx = createContext<WishCtx|null>(null);
+const KEY = ‘mb_wish_v1’;
+export function WishlistProvider({ children }:{ children:ReactNode }) {
+const [ids, setIds] = useState<string[]>([]);
+useEffect(() => { try { setIds(JSON.parse(localStorage.getItem(KEY)??”[]”)); } catch { setIds([]); } }, []);
+const toggle = (id:string) => { const next=ids.includes(id)?ids.filter(i=>i!==id):[…ids,id]; setIds(next); localStorage.setItem(KEY,JSON.stringify(next)); };
+const has = (id:string) => ids.includes(id);
+return <Ctx.Provider value={{ids,toggle,has}}>{children}</Ctx.Provider>;
+}
+export const useWishlist = () => { const c=useContext(Ctx); if(!c) throw new Error(‘useWishlist outside provider’); return c; };
+EOF
+
+# ══════════════════════════════════════════════════════════════════
+
+# components/Toast.tsx
+
+# ══════════════════════════════════════════════════════════════════
+
+cat > “$DIR/components/Toast.tsx” << ‘EOF’
+import { useEffect, useState, createContext, useContext, ReactNode, useCallback } from ‘react’;
+interface Msg { id:number; text:string; }
+interface ToastCtx { show:(text:string)=>void; }
+const Ctx = createContext<ToastCtx|null>(null);
+export function ToastProvider({ children }:{ children:ReactNode }) {
+const [msgs, setMsgs] = useState<Msg[]>([]);
+const show = useCallback((text:string) => {
+const id = Date.now();
+setMsgs(p=>[…p,{id,text}]);
+setTimeout(()=>setMsgs(p=>p.filter(m=>m.id!==id)), 3000);
+}, []);
+return (
+<Ctx.Provider value={{show}}>
+{children}
+<div className="fixed bottom-6 right-6 z-[2000] flex flex-col gap-2 pointer-events-none">
+{msgs.map(m=>(
+<div key={m.id} className="fade-in bg-[#060606] text-white font-['Jost'] text-[13px] px-5 py-3 rounded-[20px] shadow-lg">
+{m.text}
+</div>
+))}
+</div>
+</Ctx.Provider>
+);
+}
+export const useToast = () => { const c=useContext(Ctx); if(!c) throw new Error(‘useToast outside’); return c; };
+EOF
+
+# ══════════════════════════════════════════════════════════════════
+
+# components/CookieBanner.tsx
+
+# ══════════════════════════════════════════════════════════════════
+
+cat > “$DIR/components/CookieBanner.tsx” << ‘EOF’
+import { useState, useEffect } from ‘react’;
+const KEY = ‘mb_cookie_consent’;
+export default function CookieBanner() {
+const [show, setShow] = useState(false);
+useEffect(() => { if (!localStorage.getItem(KEY)) setShow(true); }, []);
+const accept = () => { localStorage.setItem(KEY,‘accepted’); setShow(false); };
+const reject = () => { localStorage.setItem(KEY,‘rejected’); setShow(false); };
+if (!show) return null;
+return (
+<div className="fixed bottom-0 inset-x-0 z-[150] bg-white border-t border-[#E4E4E4] px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-lg">
+<p className="font-['Jost'] text-[13px] text-[#060606]">
+We use cookies to enhance your experience. By continuing, you agree to our cookie policy.
+</p>
+<div className="flex gap-3 flex-shrink-0">
+<button onClick={reject} className="border border-[#060606] text-[#060606] font-['Jost'] font-medium text-[13px] px-6 py-2 rounded-[20px] hover:bg-[#EEEEEE] transition-colors">Decline</button>
+<button onClick={accept} className="bg-[#060606] text-white font-['Jost'] font-medium text-[13px] px-6 py-2 rounded-[20px] hover:opacity-90 transition-opacity">Accept</button>
+</div>
+</div>
+);
+}
+EOF
+
+# ══════════════════════════════════════════════════════════════════
+
+# components/Navbar.tsx  — Figma-exact: logo | nav | actions
+
+# ══════════════════════════════════════════════════════════════════
+
+cat > “$DIR/components/Navbar.tsx” << ‘EOF’
+import { useState, useEffect } from ‘react’;
+import Link from ‘next/link’;
+import { useRouter } from ‘next/router’;
+import { useCart } from ‘@/contexts/CartContext’;
+import { useWishlist } from ‘@/contexts/WishlistContext’;
+
+export default function Navbar({ transparent=false }:{ transparent?:boolean }) {
+const [scrolled, setScrolled] = useState(false);
+const [menuOpen, setMenuOpen] = useState(false);
+const [searchOpen, setSearchOpen] = useState(false);
+const [q, setQ] = useState(’’);
+const { total } = useCart();
+const { ids } = useWishlist();
+const router = useRouter();
+
+useEffect(() => {
+const fn = () => setScrolled(window.scrollY > 40);
+window.addEventListener(‘scroll’, fn);
+return () => window.removeEventListener(‘scroll’, fn);
+}, []);
+
+useEffect(() => {
+const fn = (e:KeyboardEvent) => { if(e.key===‘Escape’){ setMenuOpen(false); setSearchOpen(false); } };
+window.addEventListener(‘keydown’, fn);
+return () => window.removeEventListener(‘keydown’, fn);
+}, []);
+
+const isLight = transparent && !scrolled;
+const bg = isLight ? ‘bg-transparent’ : ‘bg-white border-b border-[#E4E4E4]’;
+const col = isLight ? ‘text-white’ : ‘text-[#060606]’;
+const stroke = isLight ? ‘#FFFFFF’ : ‘#060606’;
+
+const navLinks = [
+[’/’,‘HOME’],[’/shop’,‘SHOP’],[’/new-arrivals’,‘NEW ARRIVALS’],
+[’/bags’,‘BAGS’],[’/accessories’,‘ACCESSORIES’],[’/about’,‘ABOUT US’],
+];
+
+const handleSearch = (e:React.FormEvent) => {
+e.preventDefault();
+if(q.trim()){ router.push(`/search?q=${encodeURIComponent(q.trim())}`); setSearchOpen(false); setQ(’’); }
+};
+
+return (
+<>
+{/* ── Ticker ── */}
+{!isLight && (
+<div className="bg-[#060606] text-white h-[36px] overflow-hidden flex items-center">
+<div className="ticker-scroll whitespace-nowrap font-['Jost'] text-[12px] tracking-[0.15em]">
+{Array(6).fill(‘FREE DELIVERY OVER $140    ·    100% AUTHENTIC    ·    MONEY BACK GUARANTEE    ·    24/7 SUPPORT    ·   ’).join(’’)}
+</div>
+</div>
+)}
+
+```
+  <header className={`${transparent?'absolute':'sticky top-0'} inset-x-0 z-[200] transition-all duration-300 ${bg}`}>
+    {/* Active nav underline hint (Rectangle 7 from Figma) */}
+    <div className="flex items-center justify-between px-4 lg:px-[80px] xl:px-[120px] h-[85px]">
+
+      {/* Logo */}
+      <Link href="/" className={`font-['Julius_Sans_One'] text-[18px] tracking-[0.2em] font-normal leading-none ${col}`}>
+        MB BRANDNAME
+      </Link>
+
+      {/* Desktop Nav — Jost 500 16px/24px */}
+      <nav className="hidden lg:flex items-center gap-[40px]">
+        {navLinks.map(([href,label]) => (
+          <Link key={href} href={href}
+            className={`font-['Jost'] font-medium text-[16px] leading-[24px] hover:opacity-70 transition-opacity relative group ${col}`}>
+            {label}
+            {/* Active underline — Rectangle 7: 140×2px #060606 */}
+            <span className={`absolute -bottom-[4px] left-0 h-[2px] w-0 group-hover:w-full transition-all duration-300 ${isLight?'bg-white':'bg-[#060606]'}`} />
+          </Link>
+        ))}
+      </nav>
+
+      {/* Actions: search | user | heart | bag | hamburger */}
+      <div className="flex items-center gap-[20px]">
+        {/* Search */}
+        <button onClick={()=>setSearchOpen(true)} aria-label="Search" className={`hover:opacity-70 transition-opacity ${col}`}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        </button>
+        {/* Account */}
+        <Link href="/account" aria-label="My Account" className={`hover:opacity-70 transition-opacity ${col}`}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </Link>
+        {/* Wishlist */}
+        <Link href="/wishlist" aria-label="Wishlist" className={`relative hover:opacity-70 transition-opacity ${col}`}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          {ids.length>0 && <span className="absolute -top-[6px] -right-[6px] bg-[#C32929] text-white font-['Jost'] font-medium text-[10px] w-[16px] h-[16px] rounded-full flex items-center justify-center leading-none">{ids.length}</span>}
+        </Link>
+        {/* Cart — badge bg-[#B9A16B] from spec */}
+        <Link href="/cart" aria-label="Shopping Cart" className={`relative hover:opacity-70 transition-opacity ${col}`}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+          {total>0 && <span className="absolute -top-[6px] -right-[6px] bg-[#B9A16B] text-white font-['Jost'] font-medium text-[10px] w-[16px] h-[16px] rounded-full flex items-center justify-center leading-none">{total}</span>}
+        </Link>
+        {/* Hamburger — Figma: 3 rectangles 20×2px */}
+        <button className="lg:hidden flex flex-col justify-center gap-[6px]" aria-label="Open menu" onClick={()=>setMenuOpen(true)}>
+          <span className={`block w-5 h-[2px] ${isLight?'bg-white':'bg-[#060606]'}`}/>
+          <span className={`block w-5 h-[2px] ${isLight?'bg-white':'bg-[#060606]'}`}/>
+          <span className={`block w-5 h-[2px] ${isLight?'bg-white':'bg-[#060606]'}`}/>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  {/* Mobile Drawer */}
+  {menuOpen && (
+    <div className="fixed inset-0 z-[800] flex">
+      <div className="flex-1 bg-black/50" onClick={()=>setMenuOpen(false)}/>
+      <div className="w-[280px] bg-white h-full flex flex-col p-8 slide-in-right">
+        <button className="self-end text-xl mb-8 text-[#060606]" onClick={()=>setMenuOpen(false)} aria-label="Close">✕</button>
+        <nav className="flex flex-col gap-6">
+          {navLinks.map(([href,label])=>(
+            <Link key={href} href={href} onClick={()=>setMenuOpen(false)}
+              className="font-['Jost'] font-medium text-[16px] text-[#060606] hover:text-[#B9A16B] transition-colors">
+              {label}
+            </Link>
+          ))}
+        </nav>
+      </div>
+    </div>
+  )}
+
+  {/* Search Overlay */}
+  {searchOpen && (
+    <div className="fixed inset-0 z-[1000] bg-black/60 flex items-start justify-center pt-28 px-4 fade-in" onClick={()=>setSearchOpen(false)}>
+      <div className="w-full max-w-2xl" onClick={e=>e.stopPropagation()}>
+        <form onSubmit={handleSearch} className="flex shadow-2xl">
+          <input autoFocus value={q} onChange={e=>setQ(e.target.value)} placeholder="Search products…"
+            className="flex-1 px-6 py-4 font-['Jost'] text-[15px] outline-none text-[#060606] bg-white"/>
+          <button type="submit" className="px-8 bg-[#060606] text-white font-['Jost'] font-medium text-[13px] uppercase tracking-widest">
+            SEARCH
+          </button>
+        </form>
+      </div>
+    </div>
+  )}
+</>
+```
+
+);
+}
+EOF
+
+# ══════════════════════════════════════════════════════════════════
+
+# components/Footer.tsx  — Figma: bg #060606, h-[571px], 5-col grid
+
+# ══════════════════════════════════════════════════════════════════
+
+cat > “$DIR/components/Footer.tsx” << ‘EOF’
+import Link from ‘next/link’;
+import { useState } from ‘react’;
+
+export default function Footer() {
+const [email, setEmail] = useState(’’);
+const [joined, setJoined] = useState(false);
+const handleJoin = (e:React.FormEvent) => { e.preventDefault(); if(email.includes(’@’)) setJoined(true); };
+const scrollTop = () => window.scrollTo({top:0,behavior:‘smooth’});
+
+return (
+<footer className="bg-[#060606] text-white relative min-h-[571px]">
+<div className="container mx-auto px-4 xl:px-[120px] max-w-[1436px] py-[60px] flex flex-col justify-between min-h-[571px]">
+
+```
+    {/* 5-column grid */}
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-10 mb-10">
+
+      {/* Col 1: Logo + address */}
+      <div className="col-span-2 md:col-span-1">
+        <p className="font-['Julius_Sans_One'] text-[16px] tracking-[0.2em] mb-6">MB BRANDNAME</p>
+        {/* Figma text: 400 14px/24px Jost */}
+        <address className="not-italic font-['Jost'] text-[14px] leading-[24px] text-[#E4E4E4]">
+          1418 River Drive, Suite 35<br/>
+          Cottonhall, CA 9622<br/>
+          United States<br/>
+          <a href="mailto:sale@mb-brand.com" className="hover:text-[#B9A16B] transition-colors">sale@mb-brand.com</a><br/>
+          +1 246-345-0695
+        </address>
+      </div>
+
+      {/* Col 2: COMPANY — Figma: 500 18px/26px heading, 14px/40px links */}
+      <div>
+        <h4 className="font-['Jost'] font-medium text-[18px] leading-[26px] text-white mb-5 uppercase">Company</h4>
+        <nav className="flex flex-col font-['Jost'] text-[14px] leading-[40px] text-[#E4E4E4]">
+          {[['About Us','/about'],['Careers','/careers'],['Affiliates','/affiliates'],['Blog','/blog'],['Contact Us','/contact']].map(([l,h])=>(
+            <Link key={h} href={h} className="hover:text-[#B9A16B] transition-colors">{l}</Link>
+          ))}
+        </nav>
+      </div>
+
+      {/* Col 3: SHOP */}
+      <div>
+        <h4 className="font-['Jost'] font-medium text-[18px] leading-[26px] text-white mb-5 uppercase">Shop</h4>
+        <nav className="flex flex-col font-['Jost'] text-[14px] leading-[40px] text-[#E4E4E4]">
+          {[['New Arrivals','/new-arrivals'],['Accessories','/accessories'],['Bags','/bags'],['All Products','/shop']].map(([l,h])=>(
+            <Link key={h} href={h} className="hover:text-[#B9A16B] transition-colors">{l}</Link>
+          ))}
+        </nav>
+      </div>
+
+      {/* Col 4: HELP */}
+      <div>
+        <h4 className="font-['Jost'] font-medium text-[18px] leading-[26px] text-white mb-5 uppercase">Help</h4>
+        <nav className="flex flex-col font-['Jost'] text-[14px] leading-[40px] text-[#E4E4E4]">
+          {[['Customer Service','/customer-service'],['My Account','/account'],['Find a Store','/find-a-store'],['Legal & Privacy','/legal-privacy'],['Contact','/contact'],['Gift Card','/gift-card']].map(([l,h])=>(
+            <Link key={h} href={h} className="hover:text-[#B9A16B] transition-colors">{l}</Link>
+          ))}
+        </nav>
+      </div>
+
+      {/* Col 5: OPENING TIME + SUBSCRIBE */}
+      <div>
+        <h4 className="font-['Jost'] font-medium text-[18px] leading-[26px] text-white mb-5 uppercase">Opening Time</h4>
+        {/* Figma: 14px/40px #E4E4E4 */}
+        <p className="font-['Jost'] text-[14px] leading-[40px] text-[#E4E4E4] mb-6">
+          Mon – Fri: 8AM – 9PM<br/>
+          Sat: 9 AM – 8 PM<br/>
+          Sun: Closed
+        </p>
+        <h4 className="font-['Jost'] font-medium text-[18px] leading-[26px] text-white mb-3 uppercase">Subscribe</h4>
+        <p className="font-['Jost'] text-[13px] leading-[22px] text-[#E4E4E4] mb-3">
+          Be the first to get news about trends and promotions!
+        </p>
+        {joined ? (
+          <p className="font-['Jost'] text-[13px] text-[#B9A16B]">Thank you for subscribing!</p>
+        ) : (
+          <form onSubmit={handleJoin} className="flex">
+            <input value={email} onChange={e=>setEmail(e.target.value)} type="email" placeholder="Your email address" required
+              className="flex-1 min-w-0 px-3 py-2 text-[#060606] text-[13px] font-['Jost'] outline-none"/>
+            <button type="submit" className="bg-[#B9A16B] text-white font-['Jost'] font-medium text-[13px] px-3 py-2 hover:opacity-90 whitespace-nowrap">JOIN</button>
+          </form>
+        )}
+      </div>
+    </div>
+
+    {/* Divider — Figma: 1px white opacity 0.15 */}
+    <div className="h-[1px] bg-white opacity-[0.15] my-4"/>
+
+    {/* Bottom row: copyright | social | region+currency */}
+    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
+      {/* Figma: 400 14px/24px */}
+      <span className="font-['Jost'] text-[14px] leading-[24px] text-[#E4E4E4]">©2026 MB Brandname</span>
+      {/* Social — Figma: 5 icons, gap ~40px */}
+      <div className="flex gap-[30px]">
+        {[['Facebook','f'],['Twitter','tw'],['Instagram','ig'],['Pinterest','pt'],['YouTube','yt']].map(([label,abbr])=>(
+          <a key={label} href="#" aria-label={label} className="font-['Jost'] font-medium text-[13px] text-[#E4E4E4] hover:text-[#B9A16B] transition-colors">{abbr}</a>
+        ))}
+      </div>
+      <span className="font-['Jost'] text-[14px] leading-[24px] text-[#E4E4E4]">United Kingdom | English · $ USD</span>
+    </div>
+  </div>
+
+  {/* Back to top — Figma: Rectangle 36, 45×45px white bg */}
+  <button onClick={scrollTop} aria-label="Back to top"
+    className="absolute bottom-[30px] right-[30px] w-[45px] h-[45px] bg-white text-[#060606] flex items-center justify-center hover:bg-[#B9A16B] hover:text-white transition-colors shadow-md text-[18px] font-bold">
+    ↑
+  </button>
+</footer>
+```
+
+);
+}
+EOF
+
+# ══════════════════════════════════════════════════════════════════
+
+# components/Layout.tsx
+
+# ══════════════════════════════════════════════════════════════════
+
+cat > “$DIR/components/Layout.tsx” << ‘EOF’
+import Head from ‘next/head’;
+import Navbar from ‘./Navbar’;
+import Footer from ‘./Footer’;
+import CookieBanner from ‘./CookieBanner’;
+import { ReactNode } from ‘react’;
+
+interface Props {
+children: ReactNode;
+title?: string;
+description?: string;
+transparentNav?: boolean;
+}
+
+export default function Layout({ children, title=‘MB BRANDNAME’, description=‘Authentic luxury branded items.’, transparentNav=false }:Props) {
+return (
+<>
+<Head>
+<title>{title}</title>
+<meta name="description" content={description}/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin=""/>
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600;700&family=Julius+Sans+One&display=swap" rel="stylesheet"/>
+</Head>
+<Navbar transparent={transparentNav}/>
+<main>{children}</main>
+<Footer/>
+<CookieBanner/>
+</>
+);
+}
+EOF
+
+# ══════════════════════════════════════════════════════════════════
+
+# components/ProductCard.tsx
+
+# Figma: 260px card, bg variants, hover bar + action circles
+
+# ══════════════════════════════════════════════════════════════════
+
+cat > “$DIR/components/ProductCard.tsx” << ‘EOF’
+import Link from ‘next/link’;
+import Image from ‘next/image’;
+import { Product } from ‘@/data/products’;
+import { useCart } from ‘@/contexts/CartContext’;
+import { useWishlist } from ‘@/contexts/WishlistContext’;
+import { useToast } from ‘@/components/Toast’;
+
+// Figma panel bg variants
+const BG = [’#F9F9F9’,’#F5F4F9’,’#F8F8F8’,’#F1F1F1’];
+
+export default function ProductCard({ product, idx=0 }:{ product:Product; idx?:number }) {
+const { add } = useCart();
+const { toggle, has } = useWishlist();
+const { show } = useToast();
+const wished = has(product.id);
+
+return (
+<article className="group relative w-full">
+{/* Image area — Figma: aspect 260/300 */}
+<div className="relative overflow-hidden aspect-[260/300]" style={{background:BG[idx%BG.length]}}>
+<Image src={product.images[0]} alt={product.title} fill sizes="(max-width:640px) 50vw,(max-width:1024px) 33vw,20vw"
+className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"/>
+
+```
+    {/* Sale badge */}
+    {product.compareAtPrice && (
+      <span className="absolute top-3 left-3 bg-[#D6001C] text-white font-['Jost'] font-medium text-[11px] px-2 py-0.5 leading-none">SALE</span>
+    )}
+
+    {/* ADD TO CART bar — Figma: Rectangle 35, 240×40px white bottom */}
+    <div className="absolute inset-x-0 bottom-0 h-[40px] bg-white flex items-center justify-center
+      opacity-0 group-hover:opacity-100 transition-opacity duration-300 cursor-pointer z-[10]"
+      onClick={()=>{ add(product.id); show(`${product.title} added to cart`); }}>
+      <span className="font-['Jost'] font-medium text-[14px] text-[#060606] tracking-[0.05em]">ADD TO CART</span>
+    </div>
+
+    {/* Action circles — Figma: Group 2, top-right, 35×35px */}
+    <div className="absolute top-[10px] right-[10px] flex flex-col gap-[10px] z-[10]
+      opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+      {/* View — Figma: bg white rounded-full */}
+      <Link href={`/product/${product.slug}`} aria-label="View product"
+        className="w-[35px] h-[35px] bg-white rounded-[50px] flex items-center justify-center shadow-[0_8px_15px_rgba(140,152,164,0.1)] hover:bg-[#EEEEEE] transition-colors">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#060606" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      </Link>
+      {/* Wishlist — Figma: bg #C32929 rounded-full when active */}
+      <button aria-label="Toggle wishlist"
+        onClick={()=>{ toggle(product.id); show(wished?'Removed from wishlist':'Added to wishlist'); }}
+        className={`w-[35px] h-[35px] rounded-[50px] flex items-center justify-center shadow-[0_8px_15px_rgba(140,152,164,0.1)] transition-colors ${wished?'bg-[#C32929]':'bg-white hover:bg-[#C32929]'}`}>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill={wished?'#fff':'none'} stroke={wished?'#fff':'#060606'} strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+      </button>
+    </div>
+
+    {/* Always-visible wishlist (low opacity) */}
+    <button aria-label="Add to wishlist"
+      onClick={()=>{ toggle(product.id); show(wished?'Removed from wishlist':'Added to wishlist'); }}
+      className={`absolute top-[10px] right-[10px] z-[5] transition-opacity duration-300 group-hover:opacity-0 ${wished?'opacity-100':'opacity-40 hover:opacity-100'}`}>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill={wished?'#C32929':'none'} stroke={wished?'#C32929':'#060606'} strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+    </button>
+  </div>
+
+  {/* Info — Figma: category 14px, title 16px, price 16px */}
+  <Link href={`/product/${product.slug}`} className="block pt-[10px]">
+    <span className="font-['Jost'] text-[14px] leading-[24px] text-[#060606] capitalize">{product.category.replace('-',' ')}</span>
+    <h3 className="font-['Jost'] text-[16px] leading-[23px] text-[#060606] mt-[2px] hover:text-[#B9A16B] transition-colors">{product.title}</h3>
+    <div className="mt-[4px] flex gap-[8px] items-baseline">
+      {product.compareAtPrice ? (
+        <>
+          {/* Figma: strikethrough black, red sale price */}
+          <span className="font-['Jost'] text-[16px] leading-[23px] line-through text-[#060606]">${product.compareAtPrice}</span>
+          <span className="font-['Jost'] text-[16px] leading-[23px] text-[#D6001C]">${product.price}</span>
+        </>
+      ) : (
+        <span className="font-['Jost'] text-[16px] leading-[23px] text-[#060606]">${product.price}</span>
+      )}
+    </div>
+  </Link>
+</article>
+```
+
+);
+}
+EOF
+
+# ══════════════════════════════════════════════════════════════════
+
+# components/ListingPage.tsx
+
+# Figma: page cover 500px | control bar | 5-col grid | SHOW MORE
+
+# ══════════════════════════════════════════════════════════════════
+
+cat > “$DIR/components/ListingPage.tsx” << ‘EOF’
+import { useState, useMemo } from ‘react’;
+import { products, Category } from ‘@/data/products’;
+import ProductCard from ‘./ProductCard’;
+import Layout from ‘./Layout’;
+
+const PAGE_SIZE = 12;
+type Sort = ‘alpha-asc’|‘price-asc’|‘price-desc’|‘newest’;
+const SORT_LABELS:Record<Sort,string> = {
+‘alpha-asc’:‘Default Sorting’,‘price-asc’:‘Price: Low → High’,
+‘price-desc’:‘Price: High → Low’,‘newest’:‘Newest’
+};
+
+export default function ListingPage({ title, category }:{ title:string; category?:Category|‘all’ }) {
+const [sort, setSort] = useState<Sort>(‘alpha-asc’);
+const [page, setPage] = useState(1);
+const [cols, setCols] = useState(4);
+const [sortOpen, setSortOpen] = useState(false);
+
+const filtered = useMemo(() => {
+let list = (category && category!==‘all’) ? products.filter(p=>p.category===category) : […products];
+if(sort===‘alpha-asc’) list.sort((a,b)=>a.title.localeCompare(b.title));
+else if(sort===‘price-asc’) list.sort((a,b)=>a.price-b.price);
+else if(sort===‘price-desc’) list.sort((a,b)=>b.price-a.price);
+return list;
+}, [sort, category]);
+
+const shown = filtered.slice(0, page*PAGE_SIZE);
+const hasMore = shown.length < filtered.length;
+
+const gridCls: Record<number,string> = {
+2:‘grid-cols-2’,
+3:‘grid-cols-2 md:grid-cols-3’,
+4:‘grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4’,
+5:‘grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5’,
+};
+
+return (
+<Layout title={`${title} — MB BRANDNAME`}>
+
+```
+  {/* Page Cover — Figma: h-[500px] bg #060606 title 64px/92px Jost uppercase white center */}
+  <section className="relative h-[500px] bg-[#060606] flex items-center justify-center overflow-hidden">
+    <div className="absolute inset-0 bg-gradient-to-br from-[#B9A16B]/30 to-[#060606] opacity-70"/>
+    <h1 className="relative z-10 font-['Jost'] text-[52px] md:text-[64px] leading-[92px] text-white uppercase text-center tracking-[0.05em]">
+      {title}
+    </h1>
+  </section>
+
+  <section className="py-10">
+    <div className="container mx-auto px-4 xl:px-[120px] max-w-[1436px]">
+
+      {/* Control Bar — Figma: filter_top */}
+      <div className="flex items-center justify-between py-[10px] mb-[30px] relative">
+
+        {/* DEFAULT SORTING — Figma: font 500 14px/24px + Rectangle 7 underline */}
+        <div className="relative">
+          <button onClick={()=>setSortOpen(o=>!o)}
+            className="flex items-center gap-[8px] font-['Jost'] font-medium text-[14px] leading-[24px] text-[#060606]">
+            {SORT_LABELS[sort]}
+            <span className="text-[10px]">▼</span>
+          </button>
+          {/* Rectangle 7: width 140px h 2px bg #060606 */}
+          <div className="absolute bottom-[-4px] left-0 w-[140px] h-[2px] bg-[#060606]"/>
+          {sortOpen && (
+            <div className="absolute top-full left-0 mt-2 bg-white border border-[#E4E4E4] shadow-lg z-50 min-w-[200px]">
+              {(Object.entries(SORT_LABELS) as [Sort,string][]).map(([v,l])=>(
+                <button key={v} onClick={()=>{ setSort(v); setSortOpen(false); setPage(1); }}
+                  className={`block w-full text-left px-4 py-2 font-['Jost'] text-[13px] hover:bg-[#EEEEEE] transition-colors ${sort===v?'font-medium':''}`}>
+                  {l}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Right: VIEW + grid toggles + FILTER — Figma: separators 2×22px #E4E4E4 */}
+        <div className="flex items-center gap-0">
+          {/* Separator Rectangle 10 */}
+          <div className="w-[2px] h-[22px] bg-[#E4E4E4] mx-[16px] hidden sm:block"/>
+          <span className="font-['Jost'] font-medium text-[14px] leading-[24px] text-[#060606] mr-[12px] hidden sm:block">VIEW</span>
+          {/* Grid col toggles: 2 3 4 — Rectangle 9: active underline 8px */}
+          {[2,3,4,5].map(n=>(
+            <button key={n} onClick={()=>setCols(n)}
+              className={`font-['Jost'] font-medium text-[14px] leading-[24px] px-[8px] relative transition-colors ${cols===n?'text-[#060606]':'text-[#767676] hover:text-[#060606]'}`}>
+              {n}
+              {cols===n && <div className="absolute bottom-[-4px] left-1/2 -translate-x-1/2 w-[8px] h-[2px] bg-[#060606]"/>}
+            </button>
+          ))}
+          {/* Separator Rectangle 11 */}
+          <div className="w-[2px] h-[22px] bg-[#E4E4E4] mx-[16px]"/>
+          {/* FILTER button */}
+          <button className="flex items-center gap-[8px] font-['Jost'] font-medium text-[14px] leading-[24px] text-[#060606] hover:opacity-70 transition-opacity">
+            FILTER
+            <svg width="14" height="9" viewBox="0 0 14 9" fill="none"><path d="M0 1h14M3 5h8M6 9h2" stroke="#060606" strokeWidth="1.5" strokeLinecap="round"/></svg>
+          </button>
+        </div>
+      </div>
+
+      {/* Product Grid */}
+      {filtered.length===0 ? (
+        <div className="py-20 text-center font-['Jost'] text-[#636363] text-[16px]">No products found.</div>
+      ) : (
+        <div className={`grid ${gridCls[cols]??gridCls[4]} gap-x-[36px] gap-y-[30px]`}>
+          {shown.map((p,i)=><ProductCard key={p.id} product={p} idx={i}/>)}
+        </div>
+      )}
+
+      {/* SHOW MORE — Figma: text + Rectangle 8 underline 60×2px */}
+      {hasMore && (
+        <div className="flex flex-col items-center mt-[40px]">
+          <button onClick={()=>setPage(pg=>pg+1)}
+            className="font-['Jost'] font-medium text-[14px] leading-[24px] text-[#060606] hover:text-[#B9A16B] transition-colors">
+            SHOW MORE
+          </button>
+          <div className="w-[60px] h-[2px] bg-[#060606] mt-[2px]"/>
+        </div>
+      )}
+    </div>
+  </section>
+</Layout>
+```
+
+);
+}
+EOF
+
+# ══════════════════════════════════════════════════════════════════
+
+# pages/_document.tsx
+
+# ══════════════════════════════════════════════════════════════════
+
+cat > “$DIR/pages/_document.tsx” << ‘EOF’
+import { Html, Head, Main, NextScript } from ‘next/document’;
+export default function Document() {
+return (
+<Html lang="en"><Head/><body><Main/><NextScript/></body></Html>
+);
+}
+EOF
+
+# ══════════════════════════════════════════════════════════════════
+
+# pages/_app.tsx
+
+# ══════════════════════════════════════════════════════════════════
+
+cat > “$DIR/pages/_app.tsx” << ‘EOF’
+import type { AppProps } from ‘next/app’;
+import ‘@/styles/globals.css’;
+import { CartProvider } from ‘@/contexts/CartContext’;
+import { WishlistProvider } from ‘@/contexts/WishlistContext’;
+import { ToastProvider } from ‘@/components/Toast’;
+
+export default function App({ Component, pageProps }:AppProps) {
+return (
+<CartProvider>
+<WishlistProvider>
+<ToastProvider>
+<Component {…pageProps}/>
+</ToastProvider>
+</WishlistProvider>
+</CartProvider>
+);
+}
+EOF
+
+# ══════════════════════════════════════════════════════════════════
+
+# pages/index.tsx  — HOME
+
+# Hero h-screen | Story h-[861px] #EEEEEE | Top Collection | Deal | Trust | Newsletter
+
+# ══════════════════════════════════════════════════════════════════
+
+cat > “$DIR/pages/index.tsx” << ‘EOF’
+import { useState, useEffect, useCallback } from ‘react’;
+import Link from ‘next/link’;
+import Image from ‘next/image’;
+import Layout from ‘@/components/Layout’;
+import ProductCard from ‘@/components/ProductCard’;
+import { products } from ‘@/data/products’;
+
+// Hero slides
+const HERO = [
+{ img:‘https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=1920’, title:‘NO.1 Luxury Brandname Stone’ },
+{ img:‘https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=1920’, title:‘Timeless Elegance’ },
+{ img:‘https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=1920’, title:‘100% Authentic’ },
+];
+
+// Story slides
+const STORY = [
+{ img:‘https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600’,
+headline:‘Every bag tells a journey of style and elegance.’,
+body:‘For those who adore the timeless charm of authentic designer bags, our curated collection brings you the finest pieces from around the world.’ },
+{ img:‘https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=600’,
+headline:‘Crafted for those who demand perfection.’,
+body:‘Each piece in our collection is hand-selected for quality, authenticity, and enduring style that transcends seasons.’ },
+{ img:‘https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600’,
+headline:‘Accessories that define your signature.’,
+body:‘From delicate necklaces to statement watches, find the finishing touch that makes every outfit unforgettable.’ },
+];
+
+export default function Home() {
+const [slide, setSlide] = useState(0);
+const [story, setStory] = useState(0);
+const topProducts = products.slice(0,4);
+
+const nextSlide = useCallback(()=>setSlide(s=>(s+1)%HERO.length),[]);
+const prevSlide = useCallback(()=>setSlide(s=>(s-1+HERO.length)%HERO.length),[]);
+useEffect(()=>{ const t=setInterval(nextSlide,5500); return ()=>clearInterval(t); },[nextSlide]);
+
+const [email, setEmail] = useState(’’);
+const [joined, setJoined] = useState(false);
+
+return (
+<Layout title="MB BRANDNAME — NO.1 Luxury Brandname Store"
+description="Authentic luxury branded items. Bags, accessories, jewelry." transparentNav>
+
+```
+  {/* ══ HERO — h-screen, Julius Sans One 70px/80px ══ */}
+  <section className="relative h-screen overflow-hidden">
+    {HERO.map((s,i)=>(
+      <div key={i} className={`absolute inset-0 transition-opacity duration-1000 ${i===slide?'opacity-100':'opacity-0'}`}>
+        <Image src={s.img} alt={s.title} fill className="object-cover" priority={i===0}/>
+      </div>
+    ))}
+    {/* Figma overlay: linear-gradient #010101→#626262 50% opacity */}
+    <div className="absolute inset-0 bg-gradient-to-b from-[#010101] to-[#626262] opacity-50 z-[10]"/>
+
+    {/* Figma: Julius Sans One 70px/80px white center */}
+    <div className="absolute inset-0 flex items-center justify-center z-[20] px-4">
+      <h1 className="font-['Julius_Sans_One'] text-[48px] md:text-[70px] leading-[1.14] text-white text-center max-w-3xl">
+        {HERO[slide].title}
+      </h1>
+    </div>
+
+    {/* Arrows — Figma: hover_arrow left-[56px] right-[56px], Ellipse 36 white shadow 45×45 */}
+    <button onClick={prevSlide} aria-label="Previous slide"
+      className="absolute left-[20px] md:left-[56px] top-1/2 -translate-y-1/2 z-[20] w-[45px] h-[45px] bg-white/20 hover:bg-white/40 rounded-full flex items-center justify-center text-white text-2xl transition-colors">
+      ‹
+    </button>
+    <button onClick={nextSlide} aria-label="Next slide"
+      className="absolute right-[20px] md:right-[56px] top-1/2 -translate-y-1/2 z-[20] w-[45px] h-[45px] bg-white/20 hover:bg-white/40 rounded-full flex items-center justify-center text-white text-2xl transition-colors">
+      ›
+    </button>
+
+    {/* Dots — Figma: bullet_2, 4 ellipses (active w-6 h-3, inactive w-3 h-3) */}
+    <div className="absolute bottom-[40px] left-1/2 -translate-x-1/2 flex gap-[10px] z-[20]">
+      {HERO.map((_,i)=>(
+        <button key={i} onClick={()=>setSlide(i)} aria-label={`Go to slide ${i+1}`}
+          className={`rounded-full transition-all duration-300 bg-white ${i===slide?'w-6 h-3':'w-3 h-3 opacity-50'}`}/>
+      ))}
+    </div>
+
+    {/* SHOP NOW CTA */}
+    <Link href="/shop"
+      className="absolute bottom-[100px] left-1/2 -translate-x-1/2 z-[20] border border-white text-white font-['Jost'] font-medium text-[13px] tracking-[0.15em] px-10 py-3 rounded-[20px] hover:bg-white hover:text-[#060606] transition-all whitespace-nowrap">
+      SHOP NOW
+    </Link>
+  </section>
+
+  {/* ══ STORY SECTION — Figma: h-[861px] bg-[#EEEEEE] Frame 6 ══ */}
+  <section className="bg-[#EEEEEE] relative overflow-hidden">
+    <div className="container mx-auto px-4 xl:px-[120px] max-w-[1436px]">
+      <div className="flex flex-col lg:flex-row items-center min-h-[600px] lg:min-h-[861px]">
+
+        {/* Left image — Figma: 520×702px */}
+        <div className="w-full lg:w-[520px] h-[380px] lg:h-[702px] flex-shrink-0 relative overflow-hidden">
+          {STORY.map((s,i)=>(
+            <div key={i} className={`absolute inset-0 transition-opacity duration-700 ${i===story?'opacity-100':'opacity-0'}`}>
+              <Image src={s.img} alt={s.headline} fill className="object-cover"/>
+            </div>
+          ))}
+        </div>
+
+        {/* Right text — Figma: pl-[80px] Group 5/6 */}
+        <div className="flex-1 px-6 lg:pl-[80px] lg:pr-0 py-12 lg:py-0">
+          {/* Figma: 400 36px/24px Jost */}
+          <h2 className="font-['Jost'] text-[28px] lg:text-[36px] leading-[1.3] text-[#060606] mb-[40px] lg:mb-[67px]">
+            {STORY[story].headline}
+          </h2>
+          {/* Figma: 300 24px/30px Jost letter-spacing 0.03em */}
+          <p className="font-['Jost'] font-light text-[18px] lg:text-[24px] leading-[1.6] tracking-[0.03em] text-[#060606] mb-[40px]">
+            {STORY[story].body}
+          </p>
+          {/* CTA — Figma: Rectangle 64 bg #636363 border-radius 20px 191×33px */}
+          <Link href="/shop"
+            className="inline-block bg-[#636363] text-white font-['Jost'] font-medium text-[14px] px-[24px] py-[7px] rounded-[20px] uppercase tracking-[0.05em] hover:opacity-90 transition-opacity">
+            Our Top Collection →
+          </Link>
+
+          {/* Story nav arrows — Figma: Ellipse 36 45×45px shadow */}
+          <div className="flex items-center gap-4 mt-[40px]">
+            <button onClick={()=>setStory(s=>(s-1+STORY.length)%STORY.length)} aria-label="Previous"
+              className="w-[45px] h-[45px] bg-white rounded-full shadow-[0_8px_15px_rgba(140,152,164,0.1)] flex items-center justify-center text-[#767676] text-xl hover:bg-[#EEEEEE] transition-colors">
+              ‹
+            </button>
+            <button onClick={()=>setStory(s=>(s+1)%STORY.length)} aria-label="Next"
+              className="w-[45px] h-[45px] bg-white rounded-full shadow-[0_8px_15px_rgba(140,152,164,0.1)] flex items-center justify-center text-[#767676] text-xl hover:bg-[#EEEEEE] transition-colors">
+              ›
+            </button>
+          </div>
+
+          {/* Dots — 4 ellipses */}
+          <div className="flex gap-[15px] mt-[20px]">
+            {STORY.map((_,i)=>(
+              <button key={i} onClick={()=>setStory(i)} aria-label={`Story ${i+1}`}
+                className={`rounded-full transition-all duration-300 ${i===story?'w-6 h-3 bg-[#060606]':'w-3 h-3 bg-[#060606]/30'}`}/>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {/* ══ OUR TOP COLLECTION — 4 cards ══ */}
+  <section className="py-[64px]">
+    <div className="container mx-auto px-4 xl:px-[120px] max-w-[1436px]">
+      {/* Section heading — Figma: 500 35px/51px Jost uppercase */}
+      <h2 className="font-['Jost'] font-medium text-[35px] leading-[51px] uppercase text-[#060606] text-center mb-[40px]">
+        Our Top Collection
+      </h2>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-x-[36px] gap-y-[30px]">
+        {topProducts.map((p,i)=><ProductCard key={p.id} product={p} idx={i}/>)}
+      </div>
+      <div className="flex justify-center mt-10">
+        <Link href="/shop"
+          className="border-2 border-[#060606] text-[#060606] font-['Jost'] font-medium text-[14px] tracking-widest px-10 py-3 rounded-[20px] hover:bg-[#060606] hover:text-white transition-all uppercase">
+          VIEW ALL PRODUCTS
+        </Link>
+      </div>
+    </div>
+  </section>
+
+  {/* ══ DEAL OF THE WEEK — Figma: h-[481px] bg #EEEEEE ══ */}
+  <section className="relative h-[481px] bg-[#EEEEEE] flex flex-col items-center justify-center text-center overflow-hidden">
+    <Image src="https://images.unsplash.com/photo-1483985988355-763728e1935b?w=1600" alt="" fill className="object-cover opacity-30"/>
+    <div className="relative z-10 px-4">
+      <p className="font-['Jost'] text-[13px] tracking-[0.3em] uppercase text-[#B9A16B] mb-4">Limited Time</p>
+      {/* Figma: 500 35px/51px Jost uppercase */}
+      <h2 className="font-['Jost'] font-medium text-[35px] leading-[51px] uppercase text-[#060606] mb-3">
+        Deal Of The Week
+      </h2>
+      {/* Figma: 700 32px/46px Jost uppercase */}
+      <p className="font-['Jost'] font-bold text-[24px] md:text-[32px] leading-[46px] uppercase text-[#060606] max-w-[900px]">
+        100% Authentic Branded Items from Japan
+      </p>
+      <Link href="/new-arrivals"
+        className="inline-block mt-8 bg-[#060606] text-white font-['Jost'] font-medium text-[13px] tracking-widest px-10 py-3 rounded-[20px] hover:opacity-90 transition-opacity uppercase">
+        SHOP NOW
+      </Link>
+    </div>
+  </section>
+
+  {/* ══ TRUST BADGES — end section, 3-col ══ */}
+  <section className="py-[64px] border-t border-[#E4E4E4]">
+    <div className="container mx-auto px-4 xl:px-[120px] max-w-[1436px]">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+        {[
+          { icon:'🚚', title:'Fast And Free Delivery', body:'Free delivery for all orders over $140' },
+          { icon:'🎧', title:'24/7 Customer Support',  body:'Friendly 24/7 customer support' },
+          { icon:'🛡️', title:'Money Back Guarantee',   body:'We return money within 30 days' },
+        ].map((b,i)=>(
+          <div key={i} className="flex items-start gap-5">
+            {/* Figma: icon 52×52px */}
+            <span className="text-[40px] w-[52px] h-[52px] flex items-center justify-center flex-shrink-0">{b.icon}</span>
+            <div>
+              {/* Figma: 500 18px/26px */}
+              <h3 className="font-['Jost'] font-medium text-[18px] leading-[26px] text-[#060606] mb-1">{b.title}</h3>
+              {/* Figma: 400 15px/22px */}
+              <p className="font-['Jost'] text-[15px] leading-[22px] text-[#060606]">{b.body}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  {/* ══ NEWSLETTER — Figma: light footer / subscribe section ══ */}
+  <section className="bg-[#EEEEEE] py-[60px]">
+    <div className="container mx-auto px-4 xl:px-[120px] max-w-[1436px]">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
+        <div>
+          {/* Figma: 500 18px/26px */}
+          <h3 className="font-['Jost'] font-medium text-[18px] leading-[26px] text-[#060606] mb-2 uppercase">Subscribe</h3>
+          {/* Figma: 400 14px/24px */}
+          <p className="font-['Jost'] text-[14px] leading-[24px] text-[#060606]">
+            Be the first to get the latest news about trends, promotions, and much more!
+          </p>
+        </div>
+        <div>
+          {joined ? (
+            <p className="font-['Jost'] text-[14px] text-[#B9A16B] font-medium">Thank you for subscribing!</p>
+          ) : (
+            <form onSubmit={e=>{ e.preventDefault(); if(email.includes('@')) setJoined(true); }} className="flex bg-white">
+              <input value={email} onChange={e=>setEmail(e.target.value)} type="email" placeholder="Your email address" required
+                className="flex-1 px-[20px] py-[16px] font-['Jost'] text-[14px] text-[#060606] outline-none"/>
+              <button type="submit" className="px-[30px] font-['Jost'] font-medium text-[14px] text-[#060606] hover:bg-[#060606] hover:text-white transition-colors">JOIN</button>
+            </form>
+          )}
+          <p className="font-['Jost'] font-medium text-[15px] leading-[22px] text-[#060606] mt-[16px]">
+            🔒 Secure payments
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+</Layout>
+```
+
+);
+}
+EOF
+
+# ══════════════════════════════════════════════════════════════════
+
+# pages/shop.tsx
+
+# ══════════════════════════════════════════════════════════════════
+
+cat > “$DIR/pages/shop.tsx” << ‘EOF’
+import ListingPage from ‘@/components/ListingPage’;
+export default function Shop() { return <ListingPage title="The Shop" category="all"/>; }
+EOF
+cat > “$DIR/pages/new-arrivals.tsx” << ‘EOF’
+import ListingPage from ‘@/components/ListingPage’;
+export default function NewArrivals() { return <ListingPage title="New Arrivals" category="new-arrivals"/>; }
+EOF
+cat > “$DIR/pages/bags.tsx” << ‘EOF’
+import ListingPage from ‘@/components/ListingPage’;
+export default function Bags() { return <ListingPage title="Bags" category="bags"/>; }
+EOF
+cat > “$DIR/pages/accessories.tsx” << ‘EOF’
+import ListingPage from ‘@/components/ListingPage’;
+export default function Accessories() { return <ListingPage title="Accessories" category="accessories"/>; }
+EOF
+
+# ══════════════════════════════════════════════════════════════════
+
+# pages/product/[slug].tsx  — PDP full spec
+
+# Figma: breadcrumb | gallery (thumbnails 90×90 + main 712×700) | info | tabs | reviews | related
+
+# ══════════════════════════════════════════════════════════════════
+
+cat > “$DIR/pages/product/[slug].tsx” << ‘EOF’
+import { GetStaticPaths, GetStaticProps } from ‘next’;
+import { useState } from ‘react’;
+import Image from ‘next/image’;
+import Link from ‘next/link’;
+import Layout from ‘@/components/Layout’;
+import ProductCard from ‘@/components/ProductCard’;
+import { products, Product } from ‘@/data/products’;
+import { useCart } from ‘@/contexts/CartContext’;
+import { useWishlist } from ‘@/contexts/WishlistContext’;
+import { useToast } from ‘@/components/Toast’;
+
+export const getStaticPaths: GetStaticPaths = async () => ({
+paths: products.map(p=>({ params:{ slug:p.slug } })),
+fallback: false,
+});
+export const getStaticProps: GetStaticProps = async ({ params }) => {
+const product = products.find(p=>p.slug===params?.slug) ?? null;
+return product ? { props:{ product } } : { notFound:true };
+};
+
+export default function ProductPage({ product }:{ product:Product }) {
+const [img, setImg] = useState(0);
+const [qty, setQty] = useState(1);
+const [tab, setTab] = useState(0);
+const { add } = useCart();
+const { toggle, has } = useWishlist();
+const { show } = useToast();
+const wished = has(product.id);
+const related = products.filter(p=>p.category===product.category && p.id!==product.id).slice(0,4);
+
+return (
+<Layout title={`${product.title} — MB BRANDNAME`} description={product.description}>
+<div className="container mx-auto px-4 xl:px-[120px] max-w-[1436px] py-8">
+
+```
+    {/* Breadcrumb — Figma: 500 14px/24px */}
+    <nav aria-label="Breadcrumb" className="flex items-center gap-[8px] font-['Jost'] font-medium text-[14px] leading-[24px] text-[#060606] mb-8">
+      <Link href="/" className="hover:text-[#B9A16B] transition-colors">HOME</Link>
+      <span className="text-[#636363]">/</span>
+      <Link href="/shop" className="hover:text-[#B9A16B] transition-colors">THE SHOP</Link>
+      <span className="text-[#636363]">/</span>
+      <span className="text-[#636363]">{product.title}</span>
+    </nav>
+
+    {/* Main layout */}
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 mb-16">
+
+      {/* GALLERY — Figma: thumbnails left 90×90, main right 712×700 */}
+      <div className="flex gap-[7px]">
+        {/* Thumbnails — Figma: 90×90px, gap ~10px, opacity 0.5 inactive */}
+        {product.images.length > 1 && (
+          <div className="flex flex-col gap-[10px] w-[90px] flex-shrink-0">
+            {product.images.map((im,i)=>(
+              <button key={i} onClick={()=>setImg(i)}
+                className={`w-[90px] h-[90px] relative overflow-hidden transition-opacity ${i===img?'opacity-100':'opacity-50 hover:opacity-100'}`}>
+                <Image src={im} alt={`View ${i+1}`} fill className="object-cover"/>
+              </button>
+            ))}
+          </div>
+        )}
+        {/* Main image — Figma: bg #EEEEEE, w-[712px] h-[700px], prev/next arrows, zoom */}
+        <div className="flex-1 relative bg-[#EEEEEE] aspect-square overflow-hidden">
+          <Image src={product.images[img]} alt={product.title} fill className="object-cover" priority/>
+          {/* Prev/Next — Figma: Ellipse 36 bg-white shadow 45×45px */}
+          {product.images.length > 1 && (
+            <>
+              <button onClick={()=>setImg(i=>(i-1+product.images.length)%product.images.length)} aria-label="Previous image"
+                className="absolute left-[10px] top-1/2 -translate-y-1/2 w-[45px] h-[45px] bg-white rounded-full shadow-[0_8px_15px_rgba(140,152,164,0.1)] flex items-center justify-center text-[#767676] text-xl hover:bg-[#EEEEEE] transition-colors z-10">
+                ‹
+              </button>
+              <button onClick={()=>setImg(i=>(i+1)%product.images.length)} aria-label="Next image"
+                className="absolute right-[10px] top-1/2 -translate-y-1/2 w-[45px] h-[45px] bg-white rounded-full shadow-[0_8px_15px_rgba(140,152,164,0.1)] flex items-center justify-center text-[#767676] text-xl hover:bg-[#EEEEEE] transition-colors z-10">
+                ›
+              </button>
+            </>
+          )}
+          {/* Zoom icon — Figma: Ellipse 36 bottom-right */}
+          <button aria-label="Zoom image"
+            className="absolute bottom-[20px] right-[20px] w-[45px] h-[45px] bg-white rounded-full shadow-[0_8px_15px_rgba(140,152,164,0.1)] flex items-center justify-center text-[#767676] hover:bg-[#EEEEEE] transition-colors z-10">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#767676" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/><path d="M11 8v6M8 11h6"/></svg>
+          </button>
+        </div>
+      </div>
+
+      {/* PRODUCT INFO */}
+      <div className="flex flex-col">
+        {/* Figma: 400 26px/38px Jost */}
+        <h1 className="font-['Jost'] text-[26px] leading-[38px] text-[#060606] mb-3">{product.title}</h1>
+        {/* Stars */}
+        <div className="flex items-center gap-2 mb-4">
+          <span className="text-[#EEBA36] text-[12px]">{'★'.repeat(Math.floor(product.rating))}{'☆'.repeat(5-Math.floor(product.rating))}</span>
+          <span className="font-['Jost'] text-[13px] text-[#636363]">({product.reviews})</span>
+        </div>
+        {/* Price — Figma: 500 22px/32px Jost */}
+        <div className="mb-6">
+          {product.compareAtPrice ? (
+            <div className="flex gap-3 items-baseline">
+              <span className="font-['Jost'] font-medium text-[22px] leading-[32px] text-[#D6001C]">${product.price}</span>
+              <span className="font-['Jost'] text-[18px] line-through text-[#636363]">${product.compareAtPrice}</span>
+            </div>
+          ) : (
+            <span className="font-['Jost'] font-medium text-[22px] leading-[32px] text-[#060606]">${product.price}</span>
+          )}
+        </div>
+        {/* Description — 400 14px/24px */}
+        <p className="font-['Jost'] text-[14px] leading-[24px] text-[#060606] mb-8">{product.description}</p>
+
+        {/* Qty + Add to Cart */}
+        <div className="flex gap-4 mb-6">
+          {/* Figma: Rectangle 31, border 2px solid #060606, 116×60px */}
+          <div className="border-2 border-[#060606] w-[116px] h-[60px] flex items-center justify-between px-[15px] flex-shrink-0">
+            <button onClick={()=>setQty(q=>Math.max(1,q-1))} className="text-xl text-[#060606] w-5 text-center">-</button>
+            <span className="font-['Jost'] text-[16px] text-[#060606]">{qty}</span>
+            <button onClick={()=>setQty(q=>q+1)} className="text-xl text-[#060606] w-5 text-center">+</button>
+          </div>
+          {/* Figma: Rectangle 32, bg #060606, 280×60px */}
+          <button onClick={()=>{ for(let i=0;i<qty;i++) add(product.id); show(`${product.title} added to cart`); }}
+            className="flex-1 h-[60px] bg-[#060606] text-white font-['Jost'] font-medium text-[14px] leading-[24px] uppercase tracking-[0.08em] hover:opacity-90 active:scale-[0.98] transition-all">
+            ADD TO CART
+          </button>
+        </div>
+
+        {/* Wishlist + Share — Figma: font 500 13px/24px, Rectangle 7 underline 90×2px */}
+        <div className="flex items-center gap-[40px] mb-8">
+          <button onClick={()=>{ toggle(product.id); show(wished?'Removed from wishlist':'Added to wishlist'); }}
+            className="flex items-center gap-[10px] relative group">
+            <svg width="16" height="14" viewBox="0 0 24 24" fill={wished?'#C32929':'none'} stroke={wished?'#C32929':'#060606'} strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            <span className="font-['Jost'] font-medium text-[13px] leading-[24px] text-[#060606]">
+              {wished?'WISHLISTED':'ADD TO WISHLIST'}
+            </span>
+            <div className="absolute bottom-[-2px] left-0 w-[90px] h-[2px] bg-[#060606]"/>
+          </button>
+          <button className="flex items-center gap-[10px]">
+            <svg width="16" height="18" viewBox="0 0 24 24" fill="none" stroke="#060606" strokeWidth="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+            <span className="font-['Jost'] font-medium text-[13px] leading-[24px] text-[#060606]">SHARE</span>
+          </button>
+        </div>
+
+        {/* SKU / Tags — Figma: 400 13px/24px */}
+        <p className="font-['Jost'] text-[13px] leading-[24px] text-[#060606]">
+          <span className="text-[#636363]">SKU:</span> N/A &nbsp;
+          <span className="text-[#636363]">Categories:</span> <Link href={`/${product.category}`} className="hover:underline capitalize">{product.category.replace('-',' ')}</Link> &nbsp;
+          <span className="text-[#636363]">Tags:</span> {product.tags.join(', ')}
+        </p>
+        <p className="font-['Jost'] text-[13px] text-[#636363] mt-1">
+          {product.inventory>5?'✓ In Stock':product.inventory>0?`⚡ Only ${product.inventory} left`:'✗ Out of stock'}
+        </p>
+      </div>
+    </div>
+
+    {/* TABS — Figma: DESCRIPTION | ADDITIONAL INFORMATION | REVIEWS (3) */}
+    {/* font 500 16px/23px centered, active underline Rectangle 8: 90×2px */}
+    <div className="mb-16">
+      <div className="flex justify-center gap-[40px] lg:gap-[60px] border-b border-[#060606] mb-[40px]">
+        {['DESCRIPTION','ADDITIONAL INFORMATION',`REVIEWS (${product.reviews})`].map((t,i)=>(
+          <button key={i} onClick={()=>setTab(i)}
+            className={`relative pb-[10px] font-['Jost'] font-medium text-[14px] lg:text-[16px] leading-[23px] text-[#060606] -mb-[2px] border-b-2 transition-colors ${tab===i?'border-[#060606]':'border-transparent text-[#636363] hover:text-[#060606]'}`}>
+            {t}
+          </button>
+        ))}
+      </div>
+
+      {/* Tab: Description */}
+      {tab===0 && (
+        <p className="font-['Jost'] text-[14px] leading-[24px] text-[#060606] max-w-2xl">{product.description}</p>
+      )}
+
+      {/* Tab: Additional Information — Figma: tabs_information, label+value pairs */}
+      {tab===1 && (
+        <table className="font-['Jost'] text-[14px] leading-[28px] text-[#060606]">
+          <tbody>
+            {[['Weight','0.5 kg'],['Dimensions','30 × 20 × 10 cm'],['Size','One Size'],['Color','As shown'],['Storage','Store in dust bag']].map(([k,v])=>(
+              <tr key={k} className="border-b border-[#E4E4E4]">
+                <td className="pr-12 py-2 font-medium text-[#636363] w-[160px]">{k}</td>
+                <td className="py-2">{v}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+
+      {/* Tab: Reviews — Figma: tabs_reviews */}
+      {tab===2 && (
+        <div className="max-w-2xl">
+          {/* Review list */}
+          {[
+            { name:'Alice M.', stars:5, date:'March 2026', text:'Absolutely stunning piece. The quality exceeded my expectations and delivery was fast.' },
+            { name:'James T.', stars:4, date:'February 2026', text:'Beautiful item, exactly as described. Packaging was excellent. Would purchase again.' },
+            { name:'Sophie K.', stars:5, date:'January 2026', text:'A true luxury experience from browsing to unboxing. This is my third purchase!' },
+          ].map((r,i)=>(
+            <div key={i} className={`flex items-start gap-4 py-6 ${i<2?'border-b border-[#060606]':''}`}>
+              {/* Figma: avatar 70×70 bg #060606 */}
+              <div className="w-[70px] h-[70px] bg-[#060606] text-white rounded-full flex items-center justify-center font-medium text-xl flex-shrink-0">
+                {r.name[0]}
+              </div>
+              <div>
+                <div className="flex items-center gap-3 mb-1">
+                  <span className="font-['Jost'] font-medium text-[14px]">{r.name}</span>
+                  {/* Stars: #EEBA36 12px */}
+                  <span className="text-[#EEBA36] text-[12px]">{'★'.repeat(r.stars)}</span>
+                  <span className="font-['Jost'] text-[12px] text-[#636363]">{r.date}</span>
+                </div>
+                <p className="font-['Jost'] text-[14px] leading-[24px] text-[#060606]">{r.text}</p>
+              </div>
+            </div>
+          ))}
+          {/* Add review form — Figma: Rectangle 31/32/33/35 */}
+          <div className="mt-8">
+            <p className="font-['Jost'] font-medium text-[14px] uppercase tracking-wider text-[#060606] mb-4">Add a Review</p>
+            <div className="flex flex-col gap-3">
+              <div className="grid grid-cols-2 gap-3">
+                {/* Figma: Rectangle 32 name field */}
+                <input placeholder="Your name" className="border border-[#E4E4E4] px-4 py-3 font-['Jost'] text-[14px] outline-none focus:border-[#B9A16B] transition-colors"/>
+                {/* Figma: Rectangle 33 email */}
+                <input type="email" placeholder="Your email" className="border border-[#E4E4E4] px-4 py-3 font-['Jost'] text-[14px] outline-none focus:border-[#B9A16B] transition-colors"/>
+              </div>
+              {/* Figma: Rectangle 31, 1166×213px textarea */}
+              <textarea rows={5} placeholder="Your review" className="border border-[#E4E4E4] px-4 py-3 font-['Jost'] text-[14px] outline-none focus:border-[#B9A16B] resize-none transition-colors"/>
+              {/* Figma: Rectangle 35 bg #060606 250.75×60px */}
+              <button className="self-start w-[250px] h-[60px] bg-[#060606] text-white font-['Jost'] font-medium text-[14px] uppercase tracking-wider hover:opacity-90 transition-opacity">
+                SUBMIT REVIEW
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+
+    {/* RELATED PRODUCTS — 4-col grid */}
+    {related.length>0 && (
+      <div>
+        <h2 className="font-['Jost'] font-medium text-[28px] uppercase text-center mb-8">Related Products</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-x-[36px] gap-y-[30px]">
+          {related.map((p,i)=><ProductCard key={p.id} product={p} idx={i}/>)}
+        </div>
+      </div>
+    )}
+  </div>
+</Layout>
+```
+
+);
+}
+EOF
+
+# ══════════════════════════════════════════════════════════════════
+
+# pages/cart.tsx
+
+# ══════════════════════════════════════════════════════════════════
+
+cat > “$DIR/pages/cart.tsx” << ‘EOF’
+import Link from ‘next/link’;
+import Image from ‘next/image’;
+import Layout from ‘@/components/Layout’;
+import { useCart } from ‘@/contexts/CartContext’;
+import { products } from ‘@/data/products’;
+
+export default function Cart() {
+const { items, remove, setQty } = useCart();
+const cartItems = items.map(i=>({ i, p:products.find(p=>p.id===i.productId)! })).filter(x=>x.p);
+const subtotal = cartItems.reduce((s,{i,p})=>s+i.qty*p.price,0);
+const shipping = subtotal >= 140 ? 0 : 9.99;
+const total = subtotal + shipping;
+
+return (
+<Layout title="Cart — MB BRANDNAME">
+<div className="container mx-auto px-4 xl:px-[120px] max-w-[1436px] py-12">
+<h1 className="font-['Jost'] font-medium text-[32px] uppercase text-center mb-10">Shopping Cart</h1>
+
+```
+    {cartItems.length===0 ? (
+      <div className="py-20 text-center">
+        <p className="font-['Jost'] text-[18px] text-[#636363] mb-6">Your cart is empty.</p>
+        <Link href="/shop" className="bg-[#060606] text-white font-['Jost'] font-medium text-[13px] px-10 py-3 rounded-[20px] hover:opacity-90 transition-opacity uppercase tracking-widest">
+          CONTINUE SHOPPING
+        </Link>
+      </div>
+    ) : (
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+        {/* Table */}
+        <div className="lg:col-span-2">
+          <div className="hidden md:grid grid-cols-[2fr_1fr_1fr_1fr_32px] gap-4 pb-3 border-b-2 border-[#060606]">
+            {['PRODUCT','PRICE','QUANTITY','SUBTOTAL',''].map(h=>(
+              <span key={h} className="font-['Jost'] font-medium text-[13px] uppercase tracking-wider text-[#060606] text-center first:text-left">{h}</span>
+            ))}
+          </div>
+          {cartItems.map(({i,p})=>(
+            <div key={i.productId} className="grid grid-cols-1 md:grid-cols-[2fr_1fr_1fr_1fr_32px] gap-4 py-5 border-b border-[#E4E4E4] items-center">
+              <div className="flex items-center gap-4">
+                <div className="w-[70px] h-[70px] relative bg-[#EEEEEE] flex-shrink-0">
+                  <Image src={p.images[0]} alt={p.title} fill className="object-cover"/>
+                </div>
+                <div>
+                  <Link href={`/product/${p.slug}`} className="font-['Jost'] font-medium text-[14px] text-[#060606] hover:text-[#B9A16B] transition-colors">{p.title}</Link>
+                  <p className="font-['Jost'] text-[12px] text-[#636363] capitalize">{p.category.replace('-',' ')}</p>
+                </div>
+              </div>
+              <span className="font-['Jost'] text-[14px] text-center hidden md:block">${p.price}</span>
+              {/* Qty stepper */}
+              <div className="flex items-center justify-center border border-[#060606] w-[90px] mx-auto h-[38px]">
+                <button onClick={()=>setQty(i.productId,i.qty-1)} className="px-2 text-lg text-[#060606]">-</button>
+                <span className="px-2 font-['Jost'] text-[14px]">{i.qty}</span>
+                <button onClick={()=>setQty(i.productId,i.qty+1)} className="px-2 text-lg text-[#060606]">+</button>
+              </div>
+              <span className="font-['Jost'] font-medium text-[14px] text-center hidden md:block">${p.price*i.qty}</span>
+              <button onClick={()=>remove(i.productId)} aria-label="Remove item" className="text-[#636363] hover:text-[#C32929] transition-colors text-lg ml-auto md:ml-0">✕</button>
+            </div>
+          ))}
+        </div>
+        {/* Summary */}
+        <div>
+          <div className="bg-[#F9F9F9] p-6">
+            <h2 className="font-['Jost'] font-medium text-[18px] uppercase mb-6 pb-4 border-b border-[#E4E4E4]">Cart Totals</h2>
+            <div className="flex justify-between font-['Jost'] text-[14px] mb-3">
+              <span>Subtotal</span><span>${subtotal.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between font-['Jost'] text-[14px] mb-3">
+              <span>Shipping</span>
+              <span className={shipping===0?'text-[#B9A16B] font-medium':''}>{shipping===0?'FREE':'$9.99'}</span>
+            </div>
+            <div className="flex justify-between font-['Jost'] font-medium text-[16px] pt-4 border-t border-[#E4E4E4] mt-2">
+              <span>Total</span><span>${total.toFixed(2)}</span>
+            </div>
+            <Link href="/checkout"
+              className="block w-full mt-6 h-[60px] bg-[#060606] text-white font-['Jost'] font-medium text-[13px] tracking-widest uppercase text-center leading-[60px] hover:opacity-90 transition-opacity">
+              PROCEED TO CHECKOUT
+            </Link>
+            <Link href="/shop" className="block text-center mt-3 font-['Jost'] text-[13px] text-[#636363] hover:text-[#060606] transition-colors">
+              ← CONTINUE SHOPPING
+            </Link>
+          </div>
+        </div>
+      </div>
+    )}
+  </div>
+</Layout>
+```
+
+);
+}
+EOF
+
+# ══════════════════════════════════════════════════════════════════
+
+# pages/checkout.tsx  — deterministic SHA-256 order ID
+
+# ══════════════════════════════════════════════════════════════════
+
+cat > “$DIR/pages/checkout.tsx” << ‘EOF’
+import { useState, useEffect } from ‘react’;
+import { useRouter } from ‘next/router’;
+import Layout from ‘@/components/Layout’;
+import { useCart } from ‘@/contexts/CartContext’;
+import { products } from ‘@/data/products’;
+
+type F = { email:string; firstName:string; lastName:string; address:string; city:string; country:string; postal:string; phone:string; };
+
+export default function Checkout() {
+const { items, clear } = useCart();
+const router = useRouter();
+const [confirmed, setConfirmed] = useState(false);
+const [orderId, setOrderId] = useState(’’);
+const [form, setForm] = useState<F>({ email:’’, firstName:’’, lastName:’’, address:’’, city:’’, country:’’, postal:’’, phone:’’ });
+const [errors, setErrors] = useState<Partial<F>>({});
+
+// Guard: empty cart → /cart
+useEffect(() => { if(items.length===0 && !confirmed) router.push(’/cart’); }, [items, confirmed, router]);
+
+const cartItems = items.map(i=>({ i, p:products.find(p=>p.id===i.productId)! })).filter(x=>x.p);
+const subtotal = cartItems.reduce((s,{i,p})=>s+i.qty*p.price,0);
+const shipping = subtotal >= 140 ? 0 : 9.99;
+
+const validate = () => {
+const e: Partial<F> = {};
+if(!form.email.includes(’@’)) e.email=‘Valid email required’;
+if(!form.firstName.trim()) e.firstName=‘Required’;
+if(!form.lastName.trim()) e.lastName=‘Required’;
+if(!form.address.trim()) e.address=‘Required’;
+if(!form.city.trim()) e.city=‘Required’;
+if(!form.country.trim()) e.country=‘Required’;
+if(!form.postal.trim()) e.postal=‘Required’;
+setErrors(e); return Object.keys(e).length===0;
+};
+
+const handleSubmit = async (e:React.FormEvent) => {
+e.preventDefault();
+if(!validate()) return;
+// Deterministic SHA-256 order ID
+const sorted = […items].sort((a,b)=>a.productId.localeCompare(b.productId));
+const payload = sorted.map(i=>`${i.productId}:${i.qty}`).join(’|’);
+try {
+const hash = await crypto.subtle.digest(‘SHA-256’, new TextEncoder().encode(payload));
+const hex = Array.from(new Uint8Array(hash)).map(b=>b.toString(16).padStart(2,‘0’)).join(’’);
+setOrderId(`ord_${hex.slice(0,12)}`);
+} catch { setOrderId(`ord_${Date.now().toString(16)}`); }
+clear();
+setConfirmed(true);
+};
+
+const f = (k:keyof F) => ({
+value: form[k],
+onChange: (e:React.ChangeEvent<HTMLInputElement|HTMLSelectElement>) => setForm(p=>({…p,[k]:e.target.value}))
+});
+
+const ic = (k:keyof F) => `w-full border ${errors[k]?'border-[#D6001C]':'border-[#E4E4E4]'} px-4 py-3 font-['Jost'] text-[14px] outline-none focus:border-[#B9A16B] transition-colors`;
+
+if(confirmed) return (
+<Layout title="Order Confirmed — MB BRANDNAME">
+<div className="container mx-auto px-4 max-w-[600px] py-20 text-center">
+<div className="w-16 h-16 bg-[#B9A16B] rounded-full flex items-center justify-center mx-auto mb-6 text-white text-2xl">✓</div>
+<h1 className="font-['Jost'] font-medium text-[28px] uppercase mb-4">Order Confirmed!</h1>
+<p className="font-['Jost'] text-[14px] text-[#636363] mb-2">Order ID: <strong className="text-[#060606] font-medium">{orderId}</strong></p>
+<p className="font-['Jost'] text-[14px] text-[#636363] mb-8">
+Thank you for your purchase. A confirmation will be sent to <strong className="font-medium">{form.email}</strong>.
+</p>
+<Link href="/" className="inline-block bg-[#060606] text-white font-['Jost'] font-medium text-[13px] px-10 py-3 rounded-[20px] hover:opacity-90 transition-opacity uppercase tracking-widest">
+CONTINUE SHOPPING
+</Link>
+</div>
+</Layout>
+);
+
+return (
+<Layout title="Checkout — MB BRANDNAME">
+<div className="container mx-auto px-4 xl:px-[120px] max-w-[1436px] py-12">
+<h1 className="font-['Jost'] font-medium text-[32px] uppercase text-center mb-10">Checkout</h1>
+<form onSubmit={handleSubmit} noValidate>
+<div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+<div className="lg:col-span-2 flex flex-col gap-4">
+<h2 className="font-['Jost'] font-medium text-[16px] uppercase tracking-wider text-[#060606] pb-3 border-b border-[#E4E4E4]">Billing Details</h2>
+<div className="grid grid-cols-2 gap-4">
+<div><label className="font-['Jost'] text-[12px] font-medium uppercase tracking-wider text-[#060606] block mb-1">First Name *</label><input {…f(‘firstName’)} className={ic(‘firstName’)}/>{errors.firstName&&<p className="text-[#D6001C] text-[11px] mt-1">{errors.firstName}</p>}</div>
+<div><label className="font-['Jost'] text-[12px] font-medium uppercase tracking-wider text-[#060606] block mb-1">Last Name *</label><input {…f(‘lastName’)} className={ic(‘lastName’)}/>{errors.lastName&&<p className="text-[#D6001C] text-[11px] mt-1">{errors.lastName}</p>}</div>
+</div>
+<div><label className="font-['Jost'] text-[12px] font-medium uppercase tracking-wider text-[#060606] block mb-1">Email *</label><input type=“email” {…f(‘email’)} className={ic(‘email’)}/>{errors.email&&<p className="text-[#D6001C] text-[11px] mt-1">{errors.email}</p>}</div>
+<div><label className="font-['Jost'] text-[12px] font-medium uppercase tracking-wider text-[#060606] block mb-1">Address *</label><input {…f(‘address’)} className={ic(‘address’)}/>{errors.address&&<p className="text-[#D6001C] text-[11px] mt-1">{errors.address}</p>}</div>
+<div className="grid grid-cols-2 gap-4">
+<div><label className="font-['Jost'] text-[12px] font-medium uppercase tracking-wider text-[#060606] block mb-1">City *</label><input {…f(‘city’)} className={ic(‘city’)}/>{errors.city&&<p className="text-[#D6001C] text-[11px] mt-1">{errors.city}</p>}</div>
+<div><label className="font-['Jost'] text-[12px] font-medium uppercase tracking-wider text-[#060606] block mb-1">Postal Code *</label><input {…f(‘postal’)} className={ic(‘postal’)}/>{errors.postal&&<p className="text-[#D6001C] text-[11px] mt-1">{errors.postal}</p>}</div>
+</div>
+<div className="grid grid-cols-2 gap-4">
+<div>
+<label className="font-['Jost'] text-[12px] font-medium uppercase tracking-wider text-[#060606] block mb-1">Country *</label>
+<select {…f(‘country’)} className={ic(‘country’)}>
+<option value="">Select country</option>
+{[‘United States’,‘United Kingdom’,‘Thailand’,‘Japan’,‘Australia’,‘Canada’,‘Germany’,‘France’,‘Singapore’].map(c=><option key={c}>{c}</option>)}
+</select>
+{errors.country&&<p className="text-[#D6001C] text-[11px] mt-1">{errors.country}</p>}
+</div>
+<div><label className="font-['Jost'] text-[12px] font-medium uppercase tracking-wider text-[#060606] block mb-1">Phone</label><input type=“tel” {…f(‘phone’)} className={ic(‘phone’)}/></div>
+</div>
+</div>
+
+```
+        {/* Order summary sidebar */}
+        <div>
+          <div className="bg-[#F9F9F9] p-6 sticky top-[100px]">
+            <h2 className="font-['Jost'] font-medium text-[16px] uppercase mb-5 pb-4 border-b border-[#E4E4E4]">Your Order</h2>
+            {cartItems.map(({i,p})=>(
+              <div key={i.productId} className="flex justify-between font-['Jost'] text-[13px] mb-2">
+                <span className="text-[#636363] truncate pr-2">{p.title} × {i.qty}</span>
+                <span className="flex-shrink-0">${(p.price*i.qty).toFixed(2)}</span>
+              </div>
+            ))}
+            <div className="border-t border-[#E4E4E4] mt-4 pt-3 flex flex-col gap-2">
+              <div className="flex justify-between font-['Jost'] text-[13px]">
+                <span>Subtotal</span><span>${subtotal.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between font-['Jost'] text-[13px]">
+                <span>Shipping</span><span className={shipping===0?'text-[#B9A16B] font-medium':''}>{shipping===0?'FREE':'$9.99'}</span>
+              </div>
+              <div className="flex justify-between font-['Jost'] font-medium text-[16px] pt-2 border-t border-[#E4E4E4] mt-1">
+                <span>Total</span><span>${(subtotal+shipping).toFixed(2)}</span>
+              </div>
+            </div>
+            <button type="submit"
+              className="w-full mt-6 h-[60px] bg-[#060606] text-white font-['Jost'] font-medium text-[13px] uppercase tracking-widest hover:opacity-90 active:scale-[0.98] transition-all">
+              PLACE ORDER
+            </button>
+            <p className="font-['Jost'] text-[12px] text-[#636363] text-center mt-3">🔒 Secure SSL checkout</p>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+</Layout>
+```
+
+);
+}
+EOF
+
+# ══════════════════════════════════════════════════════════════════
+
+# pages/wishlist.tsx
+
+# ══════════════════════════════════════════════════════════════════
+
+cat > “$DIR/pages/wishlist.tsx” << ‘EOF’
+import Layout from ‘@/components/Layout’;
+import ProductCard from ‘@/components/ProductCard’;
+import { useWishlist } from ‘@/contexts/WishlistContext’;
+import { products } from ‘@/data/products’;
+import Link from ‘next/link’;
+export default function Wishlist() {
+const { ids } = useWishlist();
+const wished = products.filter(p=>ids.includes(p.id));
+return (
+<Layout title="Wishlist — MB BRANDNAME">
+<div className="container mx-auto px-4 xl:px-[120px] max-w-[1436px] py-12">
+<h1 className="font-['Jost'] font-medium text-[32px] uppercase text-center mb-10">My Wishlist</h1>
+{wished.length===0 ? (
+<div className="py-20 text-center">
+<p className="font-['Jost'] text-[18px] text-[#636363] mb-6">Your wishlist is empty.</p>
+<Link href="/shop" className="bg-[#060606] text-white font-['Jost'] font-medium text-[13px] px-10 py-3 rounded-[20px] hover:opacity-90 uppercase tracking-widest">DISCOVER PRODUCTS</Link>
+</div>
+) : (
+<div className="grid grid-cols-2 md:grid-cols-4 gap-x-[36px] gap-y-[30px]">
+{wished.map((p,i)=><ProductCard key={p.id} product={p} idx={i}/>)}
+</div>
+)}
+</div>
+</Layout>
+);
+}
+EOF
+
+# ══════════════════════════════════════════════════════════════════
+
+# pages/search.tsx
+
+# ══════════════════════════════════════════════════════════════════
+
+cat > “$DIR/pages/search.tsx” << ‘EOF’
+import { useRouter } from ‘next/router’;
+import Layout from ‘@/components/Layout’;
+import ProductCard from ‘@/components/ProductCard’;
+import { products } from ‘@/data/products’;
+export default function Search() {
+const { query } = useRouter();
+const q = (query.q as string ?? ‘’).toLowerCase().trim();
+const results = q ? products.filter(p=>
+p.title.toLowerCase().includes(q)||p.tags.some(t=>t.includes(q))||p.category.includes(q)||p.description.toLowerCase().includes(q)
+) : [];
+return (
+<Layout title={`Search: "${q}" — MB BRANDNAME`}>
+<div className="container mx-auto px-4 xl:px-[120px] max-w-[1436px] py-12">
+<h1 className="font-['Jost'] font-medium text-[28px] mb-2">Search Results</h1>
+<p className="font-['Jost'] text-[14px] text-[#636363] mb-8">{results.length} result{results.length!==1?‘s’:’’} for “{q}”</p>
+{results.length===0 ? (
+<p className="font-['Jost'] text-[15px] text-[#636363]">No products match your search. Try different keywords.</p>
+) : (
+<div className="grid grid-cols-2 md:grid-cols-4 gap-x-[36px] gap-y-[30px]">
+{results.map((p,i)=><ProductCard key={p.id} product={p} idx={i}/>)}
+</div>
+)}
+</div>
+</Layout>
+);
+}
+EOF
+
+# ══════════════════════════════════════════════════════════════════
+
+# pages/about.tsx
+
+# ══════════════════════════════════════════════════════════════════
+
+cat > “$DIR/pages/about.tsx” << ‘EOF’
+import Image from ‘next/image’;
+import Layout from ‘@/components/Layout’;
+import Link from ‘next/link’;
+export default function About() {
+return (
+<Layout title="About Us — MB BRANDNAME">
+<section className="relative h-[500px] bg-[#060606] flex items-center justify-center overflow-hidden">
+<div className="absolute inset-0 bg-gradient-to-br from-[#B9A16B]/30 to-[#060606]"/>
+<h1 className="relative z-10 font-['Jost'] text-[64px] leading-[92px] text-white uppercase text-center tracking-[0.05em]">About Us</h1>
+</section>
+<section className="py-20">
+<div className="container mx-auto px-4 xl:px-[120px] max-w-[1436px]">
+<div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center mb-20">
+<div>
+<p className="font-['Jost'] text-[13px] tracking-[0.3em] uppercase text-[#B9A16B] mb-4">Our Story</p>
+<h2 className="font-['Jost'] text-[36px] leading-[1.3] text-[#060606] mb-6">Luxury Redefined for the Modern Connoisseur</h2>
+<p className="font-['Jost'] text-[15px] leading-[28px] text-[#636363] mb-4">Founded with a passion for authentic luxury, MB BRANDNAME brings the world’s finest pieces directly to discerning collectors worldwide.</p>
+<p className="font-['Jost'] text-[15px] leading-[28px] text-[#636363]">Every item is carefully authenticated, sourced from authorized distributors, and presented with the respect it deserves.</p>
+</div>
+<div className="relative h-[400px] overflow-hidden bg-[#EEEEEE]">
+<Image src="https://images.unsplash.com/photo-1483985988355-763728e1935b?w=800" alt="About MB Brandname" fill className="object-cover"/>
+</div>
+</div>
+<div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center mb-16">
+{[[‘500+’,‘Products’],[‘50K+’,‘Happy Clients’],[‘100%’,‘Authentic’],[‘10+’,‘Years’]].map(([n,l])=>(
+<div key={l} className="p-8 bg-[#F9F9F9]">
+<p className="font-['Julius_Sans_One'] text-[48px] text-[#B9A16B]">{n}</p>
+<p className="font-['Jost'] font-medium text-[14px] uppercase tracking-wider text-[#060606] mt-2">{l}</p>
+</div>
+))}
+</div>
+<div className="text-center">
+<Link href="/shop" className="bg-[#060606] text-white font-['Jost'] font-medium text-[13px] px-10 py-4 rounded-[20px] hover:opacity-90 transition-opacity uppercase tracking-widest">EXPLORE COLLECTION</Link>
+</div>
+</div>
+</section>
+</Layout>
+);
+}
+EOF
+
+# ══════════════════════════════════════════════════════════════════
+
+# pages/account.tsx
+
+# ══════════════════════════════════════════════════════════════════
+
+cat > “$DIR/pages/account.tsx” << ‘EOF’
+import { useState } from ‘react’;
+import Layout from ‘@/components/Layout’;
+export default function Account() {
+const [tab, setTab] = useState<‘login’|‘register’>(‘login’);
+const [form, setForm] = useState({ email:’’, password:’’, name:’’ });
+const f = (k:keyof typeof form) => ({ value:form[k], onChange:(e:React.ChangeEvent<HTMLInputElement>)=>setForm(p=>({…p,[k]:e.target.value})) });
+const ic = ‘w-full border border-[#E4E4E4] px-4 py-3 font-['Jost'] text-[14px] outline-none focus:border-[#B9A16B] transition-colors’;
+return (
+<Layout title="My Account — MB BRANDNAME">
+<div className="container mx-auto px-4 max-w-[480px] py-20">
+<h1 className="font-['Jost'] font-medium text-[32px] uppercase text-center mb-8">My Account</h1>
+<div className="flex border-b border-[#E4E4E4] mb-8">
+{([‘login’,‘register’] as const).map(t=>(
+<button key={t} onClick={()=>setTab(t)}
+className={`flex-1 py-3 font-['Jost'] font-medium text-[14px] uppercase transition-colors border-b-2 -mb-[2px] ${tab===t?'border-[#060606] text-[#060606]':'border-transparent text-[#636363]'}`}>
+{t===‘login’?‘Sign In’:‘Register’}
+</button>
+))}
+</div>
+<div className="flex flex-col gap-4">
+{tab===‘register’ && <input placeholder=“Full Name” {…f(‘name’)} className={ic}/>}
+<input type=“email” placeholder=“Email Address” {…f(‘email’)} className={ic}/>
+<input type=“password” placeholder=“Password” {…f(‘password’)} className={ic}/>
+<button className="w-full h-[52px] bg-[#060606] text-white font-['Jost'] font-medium text-[13px] tracking-widest uppercase hover:opacity-90 transition-opacity">
+{tab===‘login’?‘SIGN IN’:‘CREATE ACCOUNT’}
+</button>
+{tab===‘login’ && <button className="font-['Jost'] text-[13px] text-[#636363] hover:text-[#060606] transition-colors text-center">Forgot password?</button>}
+</div>
+</div>
+</Layout>
+);
+}
+EOF
+
+# ══════════════════════════════════════════════════════════════════
+
+# pages/contact.tsx
+
+# ══════════════════════════════════════════════════════════════════
+
+cat > “$DIR/pages/contact.tsx” << ‘EOF’
+import { useState } from ‘react’;
+import Layout from ‘@/components/Layout’;
+export default function Contact() {
+const [sent, setSent] = useState(false);
+const ic = ‘w-full border border-[#E4E4E4] px-4 py-3 font-['Jost'] text-[14px] outline-none focus:border-[#B9A16B] transition-colors’;
+return (
+<Layout title="Contact — MB BRANDNAME">
+<section className="relative h-[500px] bg-[#060606] flex items-center justify-center overflow-hidden">
+<div className="absolute inset-0 bg-gradient-to-br from-[#B9A16B]/30 to-[#060606]"/>
+<h1 className="relative z-10 font-['Jost'] text-[64px] leading-[92px] text-white uppercase text-center tracking-[0.05em]">Contact Us</h1>
+</section>
+<section className="py-20">
+<div className="container mx-auto px-4 xl:px-[120px] max-w-[1436px]">
+<div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
+<div>
+<h2 className="font-['Jost'] font-medium text-[24px] uppercase mb-8">Get In Touch</h2>
+{[[‘📍’,‘Address’,‘1418 River Drive, Suite 35, Cottonhall, CA 9622’],[‘📧’,‘Email’,‘sale@mb-brand.com’],[‘📞’,‘Phone’,’+1 246-345-0695’],[‘🕐’,‘Hours’,‘Mon–Fri: 8AM–9PM, Sat: 9AM–8PM’]].map(([icon,label,val])=>(
+<div key={label} className="flex gap-4 mb-6">
+<span className="text-2xl">{icon}</span>
+<div><p className="font-['Jost'] font-medium text-[14px] text-[#060606]">{label}</p><p className="font-['Jost'] text-[14px] text-[#636363]">{val}</p></div>
+</div>
+))}
+</div>
+{sent ? (
+<div className="flex flex-col items-center justify-center text-center">
+<div className="w-16 h-16 bg-[#B9A16B] rounded-full flex items-center justify-center mx-auto mb-4 text-white text-2xl">✓</div>
+<h3 className="font-['Jost'] font-medium text-[20px] mb-2">Message Sent!</h3>
+<p className="font-['Jost'] text-[14px] text-[#636363]">We’ll get back to you within 24 hours.</p>
+</div>
+) : (
+<form onSubmit={e=>{e.preventDefault();setSent(true);}} className=“flex flex-col gap-4”>
+<div className="grid grid-cols-2 gap-4">
+<input placeholder="Your Name" required className={ic}/>
+<input type="email" placeholder="Your Email" required className={ic}/>
+</div>
+<input placeholder="Subject" className={ic}/>
+<textarea rows={5} placeholder=“Your Message” required className={`${ic} resize-none`}/>
+<button type="submit" className="self-start bg-[#060606] text-white font-['Jost'] font-medium text-[13px] px-10 py-3 rounded-[20px] hover:opacity-90 transition-opacity uppercase">SEND MESSAGE</button>
+</form>
+)}
+</div>
+</div>
+</section>
+</Layout>
+);
+}
+EOF
+
+# ══════════════════════════════════════════════════════════════════
+
+# pages/blog.tsx
+
+# ══════════════════════════════════════════════════════════════════
+
+cat > “$DIR/pages/blog.tsx” << ‘EOF’
+import Image from ‘next/image’;
+import Layout from ‘@/components/Layout’;
+import Link from ‘next/link’;
+const POSTS = [
+{ slug:‘styling-tips’, title:‘5 Ways to Style Your Luxury Bag’, date:‘March 10, 2026’, img:‘https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600’, excerpt:‘Discover how to get the most out of your investment pieces with our expert styling guide.’ },
+{ slug:‘authentication-guide’, title:‘How We Authenticate Every Piece’, date:‘February 28, 2026’, img:‘https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=600’, excerpt:‘Our rigorous authentication process ensures every item you receive is 100% genuine.’ },
+{ slug:‘spring-trends’, title:‘Spring 2026 Luxury Trends’, date:‘February 15, 2026’, img:‘https://images.unsplash.com/photo-1483985988355-763728e1935b?w=600’, excerpt:‘From pastel handbags to layered jewelry — what's trending this season.’ },
+];
+export default function Blog() {
+return (
+<Layout title="Journal — MB BRANDNAME">
+<section className="relative h-[500px] bg-[#060606] flex items-center justify-center overflow-hidden">
+<div className="absolute inset-0 bg-gradient-to-br from-[#B9A16B]/30 to-[#060606]"/>
+<h1 className="relative z-10 font-['Jost'] text-[64px] leading-[92px] text-white uppercase text-center tracking-[0.05em]">Journal</h1>
+</section>
+<section className="py-16">
+<div className="container mx-auto px-4 xl:px-[120px] max-w-[1436px]">
+<div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+{POSTS.map(p=>(
+<article key={p.slug}>
+<div className="relative h-[260px] overflow-hidden mb-5 bg-[#EEEEEE]">
+<Image src={p.img} alt={p.title} fill className="object-cover hover:scale-[1.03] transition-transform duration-300"/>
+</div>
+<p className="font-['Jost'] text-[12px] text-[#B9A16B] uppercase tracking-[0.1em] mb-2">{p.date}</p>
+<h2 className="font-['Jost'] font-medium text-[18px] leading-[26px] text-[#060606] mb-3 hover:text-[#B9A16B] transition-colors cursor-pointer">{p.title}</h2>
+<p className="font-['Jost'] text-[14px] leading-[24px] text-[#636363] mb-4">{p.excerpt}</p>
+<Link href="/blog" className="font-['Jost'] font-medium text-[13px] uppercase tracking-wider text-[#060606] hover:text-[#B9A16B] transition-colors border-b border-current pb-0.5">Read More →</Link>
+</article>
+))}
+</div>
+</div>
+</section>
+</Layout>
+);
+}
+EOF
+
+# ══════════════════════════════════════════════════════════════════
+
+# pages/404.tsx
+
+# ══════════════════════════════════════════════════════════════════
+
+cat > “$DIR/pages/404.tsx” << ‘EOF’
+import Layout from ‘@/components/Layout’;
+import Link from ‘next/link’;
+export default function NotFound() {
+return (
+<Layout title="404 — MB BRANDNAME">
+<div className="flex flex-col items-center justify-center min-h-[70vh] text-center px-4">
+<p className="font-['Julius_Sans_One'] text-[120px] md:text-[160px] text-[#EEEEEE] leading-none select-none">404</p>
+<h1 className="font-['Jost'] font-medium text-[28px] uppercase -mt-4 mb-4">Page Not Found</h1>
+<p className="font-['Jost'] text-[15px] text-[#636363] mb-8 max-w-md">The page you’re looking for doesn’t exist or has been moved.</p>
+<Link href="/" className="bg-[#060606] text-white font-['Jost'] font-medium text-[13px] px-10 py-3 rounded-[20px] hover:opacity-90 transition-opacity uppercase">BACK TO HOME</Link>
+</div>
+</Layout>
+);
+}
+EOF
+
+# ══════════════════════════════════════════════════════════════════
+
+# Static stubs: customer-service, find-a-store, legal-privacy, gift-card, careers, affiliates
+
+# ══════════════════════════════════════════════════════════════════
+
+for SLUG in customer-service find-a-store legal-privacy gift-card careers affiliates; do
+TITLE_RAW=$(echo “$SLUG” | sed ‘s/-/ /g’)
+TITLE=$(echo “$TITLE_RAW” | awk ‘{for(i=1;i<=NF;i++){$i=toupper(substr($i,1,1))substr($i,2)};print}’)
+cat > “$DIR/pages/$SLUG.tsx” << STUBEOF
+import Layout from ‘@/components/Layout’;
+import Link from ‘next/link’;
+export default function Page() {
+return (
+<Layout title="$TITLE — MB BRANDNAME">
+<section className="relative h-[400px] bg-[#060606] flex items-center justify-center overflow-hidden">
+<div className="absolute inset-0 bg-gradient-to-br from-[#B9A16B]/30 to-[#060606]"/>
+<h1 className="relative z-10 font-['Jost'] text-[52px] leading-[1.2] text-white uppercase text-center tracking-[0.05em]">$TITLE</h1>
+</section>
+<div className="container mx-auto px-4 max-w-[800px] py-20 text-center">
+<p className="font-['Jost'] text-[15px] text-[#636363] leading-[28px] mb-10">
+This page is coming soon. <Link href="/contact" className="underline hover:text-[#B9A16B] transition-colors">Contact us</Link> for any assistance.
+</p>
+<Link href="/" className="bg-[#060606] text-white font-['Jost'] font-medium text-[13px] px-10 py-3 rounded-[20px] hover:opacity-90 transition-opacity uppercase">BACK TO HOME</Link>
+</div>
+</Layout>
+);
+}
+STUBEOF
+done
+
+echo “✅  All files written”
+echo “”
+
+# ══════════════════════════════════════════════════════════════════
+
+# INSTALL & LAUNCH
+
+# ══════════════════════════════════════════════════════════════════
+
+cd “$DIR”
+echo “📦  Installing dependencies (~60s)…”
+npm install –silent
+echo “”
+echo “╔══════════════════════════════════════════════╗”
+echo “║  ✅  MB BRANDNAME v12.0 BUILD COMPLETE!     ║”
+echo “╠══════════════════════════════════════════════╣”
+echo “║  Routes:                                     ║”
+echo “║  /              Home (Hero+Story+Deal)       ║”
+echo “║  /shop          All Products                 ║”
+echo “║  /new-arrivals  New Arrivals listing         ║”
+echo “║  /bags          Bags listing                 ║”
+echo “║  /accessories   Accessories listing          ║”
+echo “║  /product/[s]   Product Detail Page          ║”
+echo “║  /cart          Shopping Cart                ║”
+echo “║  /checkout      Checkout + Order Confirm     ║”
+echo “║  /wishlist      Wishlist                     ║”
+echo “║  /search        Search Results               ║”
+echo “║  /about         About Us                     ║”
+echo “║  /contact       Contact                      ║”
+echo “║  /blog          Journal                      ║”
+echo “║  /account       Sign In / Register           ║”
+echo “║  /404           Custom 404                   ║”
+echo “║  + 6 static stubs                           ║”
+echo “╠══════════════════════════════════════════════╣”
+echo “║  Design: Figma-locked v12.0 tokens          ║”
+echo “║  Fonts:  Jost + Julius Sans One             ║”
+echo “║  → http://localhost:3000                     ║”
+echo “╚══════════════════════════════════════════════╝”
+echo “”
+npm run dev

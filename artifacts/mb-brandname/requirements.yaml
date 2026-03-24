@@ -1,0 +1,11 @@
+packages:
+  "framer-motion": "Smooth page transitions, mobile menu sliding, and micro-interactions"
+  "embla-carousel-react": "High performance carousel for hero banners and product showcases"
+  "clsx": "Utility for constructing className strings conditionally"
+  "tailwind-merge": "Utility to safely merge Tailwind classes"
+
+images: []
+
+notes:
+  - "The app uses static data for products as requested, so no backend API endpoints are assumed."
+  - "React Context is used for global state management (Cart, Wishlist)."
