@@ -1,0 +1,317 @@
+ULTRA FINAL BLUEPRINT — COMPLETE SYSTEM
+⸻
+🧠 0) SYSTEM GOAL (เป้าหมายระบบ)
+สร้าง Luxury Ecommerce Frontend ที่:
+	∙	Pixel-consistent ตาม design
+	∙	UX/Interaction ระดับ production
+	∙	Mobile-first จริง
+	∙	Deterministic (AI สร้างซ้ำได้เหมือนเดิม)
+	∙	ไม่มี backend แต่ flow ใช้งานจริง
+⸻
+🏗️ 1) TECH STACK (LOCK)
+Next.js (Pages Router)
+TypeScript (strict)
+Tailwind CSS v4
+Framer Motion
+React Context (state)
+localStorage (persist)
+🚨 globals.css
+@import “tailwindcss”;
+/* Container overrides */
+.container {
+max-width: 1280px;
+width: 100%;
+margin-left: auto;
+margin-right: auto;
+padding-left: 1rem;
+padding-right: 1rem;
+}
+@media (min-width: 1024px) {
+.container {
+padding-left: 4rem;
+padding-right: 4rem;
+} }
+@media (min-width: 1280px) {
+.container {
+padding-left: 5rem;
+padding-right: 5rem;
+} }
+@media (min-width: 1440px) {
+.container {
+max-width: 1440px;
+padding-left: 6rem;
+padding-right: 6rem;
+} }
+⸻
+📁 2) PROJECT STRUCTURE
+/pages
+index.tsx
+shop.tsx
+product/[slug].tsx
+cart.tsx
+about.tsx
+contact.tsx
+…
+/components/ui
+Header.tsx
+Footer.tsx
+ProductCard.tsx
+Motion.tsx
+Toast.tsx
+/contexts
+cart.tsx
+wishlist.tsx
+storage.ts
+/data
+products.ts
+/styles
+globals.css
+⸻
+🧱 3) LAYOUT SYSTEM (CRITICAL)
+3.1 BASE STRUCTURE
+main
+└ section
+└ (container OR full-bleed)
+⸻
+3.2 SECTION TYPES (UPDATED — สำคัญมาก)
+🟢 TYPE A — NORMAL (container)
+<section className="py-12">
+  <div className="container mx-auto px-4">ใช้กับ:
+text / about / footer / forms / content
+⸻
+🔴 TYPE B — FULL-BLEED (design-locked)
+<section className="py-0 md:py-16">
+  <div className="w-full md:container md:mx-auto md:px-4">ใช้กับ:
+hero / product grid / banner
+⸻
+🧠 RULE สุดท้าย
+mobile:
+= ใช้ container ได้
+= แต่ต้อง respect full-bleed sections
+desktop:
+= container เป็น default
+⸻
+📱 4) GRID SYSTEM (FINAL CORRECT)
+🎯 REQUIREMENT
+mobile:
+	∙	2 columns
+	∙	full-bleed
+	∙	no gap
+	∙	มีเส้น
+desktop:
+	∙	5 columns
+	∙	container
+	∙	gap
+	∙	ไม่มีเส้น
+⸻
+✅ IMPLEMENTATION (LOCK)
+<div className="
+  grid
+  grid-cols-2
+  lg:grid-cols-5
+  border-t border-l border-black/10
+  md:border-none
+  gap-0
+  md:gap-6
+">⸻
+✅ ITEM BORDER SYSTEM (ห้ามผิด)
+<div className="
+  border-r border-b border-black/10
+  md:border-none
+">⸻
+❗ RULE สำคัญ
+grid handles borders
+card must NOT have border
+⸻
+🧠 RESULT
+ไม่มี double border
+ได้ grid line แบบ magazine
+⸻
+🎴 5) PRODUCT CARD SYSTEM
+STRUCTURE
+image
+badge
+category
+title
+price
+wishlist icon
+cart action
+⸻
+IMAGE
+aspect-[3/4] object-cover
+hover:scale-[1.08]
+⸻
+BADGE
+top-left
+small label (NEW / -70%)
+⸻
+TYPOGRAPHY
+category: 11px uppercase
+title: 13–14px
+price: 13–14px
+old price: line-through
+sale price: red
+⸻
+🎨 6) DESIGN TOKEN SYSTEM
+SPACING
+4 / 8 / 16 / 24 / 32 / 48
+⸻
+COLORS
+–bg: #fff
+–text: #111
+–muted: #6d6d6d
+–border: rgba(0,0,0,0.1)
+–accent: red
+⸻
+TYPOGRAPHY
+H1: 28 → 52
+H2: 24–28
+Body: 14
+Caption: 11–12
+⸻
+SHADOW
+soft: 0 10px 30px rgba(0,0,0,0.08)
+deep: 0 20px 60px rgba(0,0,0,0.12)
+⸻
+🎬 7) MOTION SYSTEM (CINEMATIC)
+RULE
+subtle only
+smooth
+no bounce
+no aggressive motion
+⸻
+EASING
+cubic-bezier(0.22,1,0.36,1)
+⸻
+TYPES
+fade-in
+slide-up
+stagger
+hover scale
+image zoom
+⸻
+USAGE
+section → fade
+grid → stagger
+card → hover lift
+image → zoom
+⸻
+🛒 8) UX SYSTEM
+CART
+add
+remove
+qty +/-
+subtotal
+total
+persist
+⸻
+WISHLIST
+toggle
+persist
+state icon
+⸻
+SEARCH
+debounce 300ms
+filter by name
+empty state
+⸻
+FILTER
+category
+price range
+combined logic
+⸻
+PRODUCT
+slug dynamic
+gallery switch
+hover image swap
+⸻
+FEEDBACK
+toast
+loading skeleton
+empty state
+error fallback
+⸻
+📦 9) DATA MODEL
+{
+id: number
+slug: string
+name: string
+price: number
+category: string
+image: string
+image2: string
+}
+⸻
+🛡️ 10) DEFENSIVE RULES
+✔ validate array before map
+✔ guard undefined product
+✔ try/catch JSON
+✔ fallback UI
+✔ no crash allowed
+⸻
+📱 11) RESPONSIVE SYSTEM
+mobile-first always
+sm md lg required
+⸻
+MOBILE
+✔ 2 cols grid
+✔ full width
+✔ grid lines
+✔ touch friendly
+⸻
+DESKTOP
+✔ 5 cols
+✔ container
+✔ spacing
+✔ clean layout
+⸻
+❌ 12) EXCLUDED
+✘ backend
+✘ payment
+✘ auth
+✘ database
+⸻
+🎯 13) DEFINITION OF DONE
+UI
+✔ mobile grid มีเส้น
+✔ desktop ไม่มีเส้น
+✔ spacing consistent
+✔ typography correct
+⸻
+UX
+✔ no dead click
+✔ feedback ทุก action
+✔ flow ต่อเนื่อง
+⸻
+INTERACTION
+✔ hover
+✔ active
+✔ focus
+✔ smooth
+⸻
+STATE
+✔ persist
+✔ predictable
+✔ stable
+⸻
+🔥 14) FINAL SYSTEM SUMMARY
+Layout:
+	∙	section-based system
+	∙	container OR full-bleed
+Grid:
+	∙	mobile = edge-to-edge + borders
+	∙	desktop = container + spacing
+Card:
+	∙	no border
+	∙	image ratio locked
+	∙	typography fixed
+Motion:
+	∙	cinematic subtle
+UX:
+	∙	full interaction system
+State:
+	∙	persistent + safe
+⸻
+🧾 FINAL ONE-LINE SUMMARY
+A deterministic luxury ecommerce frontend system with pixel-locked mobile grid, container-based desktop layout, cinematic motion, and full interaction UX — without backend.
+⸻
