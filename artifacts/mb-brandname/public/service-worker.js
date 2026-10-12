@@ -3,7 +3,10 @@ const APP_SHELL = [
   new URL("./", self.registration.scope).href,
   new URL("manifest.webmanifest", self.registration.scope).href,
   new URL("brand-icon.svg", self.registration.scope).href,
+  new URL("brand-icon-192.png", self.registration.scope).href,
+  new URL("brand-icon-512.png", self.registration.scope).href,
   new URL("favicon.svg", self.registration.scope).href,
+  new URL("assets/hero-light_1791810528815-CBUzd2Wc.png", self.registration.scope).href,
 ];
 
 self.addEventListener("install", (event) => {
@@ -21,20 +24,22 @@ self.addEventListener("install", (event) => {
       }
     }),
   );
-  self.skipWaiting();
+  event.waitUntil(self.skipWaiting());
 });
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(
-        keys
-          .filter((key) => key.startsWith("artyverse-") && key !== CACHE_VERSION)
-          .map((key) => caches.delete(key)),
+    Promise.all([
+      caches.keys().then((keys) =>
+        Promise.all(
+          keys
+            .filter((key) => key.startsWith("artyverse-") && key !== CACHE_VERSION)
+            .map((key) => caches.delete(key)),
+        ),
       ),
-    ),
+      self.clients.claim(),
+    ]),
   );
-  self.clients.claim();
 });
 
 self.addEventListener("fetch", (event) => {
@@ -45,10 +50,10 @@ self.addEventListener("fetch", (event) => {
   if (request.mode === "navigate") {
     event.respondWith(
       fetch(request)
-        .then((response) => {
+        .then(async (response) => {
           if (response.ok) {
-            const copy = response.clone();
-            caches.open(CACHE_VERSION).then((cache) => cache.put(request, copy));
+            const cache = await caches.open(CACHE_VERSION);
+            await cache.put(request, response.clone());
           }
           return response;
         })
@@ -71,11 +76,10 @@ self.addEventListener("fetch", (event) => {
       caches.match(request).then((cached) => {
         if (cached) return cached;
         return fetch(request).then((response) => {
-          if (response.ok) {
-            const copy = response.clone();
-            caches.open(CACHE_VERSION).then((cache) => cache.put(request, copy));
-          }
-          return response;
+          if (!response.ok) return response;
+          return caches.open(CACHE_VERSION).then((cache) =>
+            cache.put(request, response.clone()).then(() => response),
+          );
         });
       }),
     );

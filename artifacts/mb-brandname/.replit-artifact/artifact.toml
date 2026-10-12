@@ -1,6 +1,6 @@
 kind = "web"
 previewPath = "/"
-title = "MB Brandname"
+title = "ARTYVERSE"
 version = "1.0.0"
 id = "artifacts/mb-brandname"
 router = "path"

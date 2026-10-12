@@ -50,9 +50,9 @@ Every package extends `tsconfig.base.json` which sets `composite: true`. The roo
 
 ## Artifacts
 
-### `artifacts/mb-brandname` — MB Brandname Luxury E-Commerce Store
+### `artifacts/mb-brandname` — ARTYVERSE Marketplace
 
-A full luxury fashion e-commerce web app matching the MBbrandname UI/UX spec.
+A responsive mock-data marketplace for digital creations, art and prints, collectible figures, creator merchandise, and accessories. Rebranded as ARTYVERSE using the uploaded brand references.
 
 - **Stack**: React + Vite + Tailwind CSS + Wouter (routing) + Embla Carousel + Framer Motion
 - **Preview path**: `/` (root)
@@ -61,7 +61,10 @@ A full luxury fashion e-commerce web app matching the MBbrandname UI/UX spec.
 - **State**: ShopContext (cart + wishlist via React Context)
 - **Products**: 12 static products in `src/data/products.ts` (new-arrivals, bags, accessories)
 - **Features**: Hero carousel, New Arrivals grid, promo split section, About section, features row
-- **Design**: Luxury minimalist — white/black palette, gold accent (#B9A16B), uppercase tracking labels
+- **Pages**: Home, searchable collection listings, product detail, wishlist, About, mock checkout, order confirmation, and not-found
+- **Features**: Cart and wishlist persistence, demo order history, session-safe welcome offer, cookie preferences, and installable PWA with an offline app shell
+- **Design**: ARTYVERSE — open editorial layouts, dark ink, warm paper neutrals, and vivid lime-to-magenta identity accents
+- **Payments**: Simulated only; the mock checkout does not collect card details or charge money
 
 ## Packages
 
