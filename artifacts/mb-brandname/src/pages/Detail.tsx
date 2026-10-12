@@ -1,159 +1,17 @@
-import { useState, useEffect } from "react";
-import { useParams, Link } from "wouter";
-import { Heart, ShoppingBag, ChevronRight, Star, Truck, ShieldCheck } from "lucide-react";
+import { useEffect,useState } from "react";
+import { Link,useParams } from "wouter";
+import { ArrowLeft,ArrowRight,Check,Heart,PackageCheck,ShieldCheck,ShoppingBag,Star } from "lucide-react";
 import { products } from "@/data/products";
 import { useShop } from "@/context/ShopContext";
 import { ProductCard } from "@/components/ProductCard";
-
-export function Detail() {
-  const { slug } = useParams();
-  const { addToCart, toggleWishlist, isWishlisted } = useShop();
-  
-  const product = products.find(p => p.slug === slug);
-  const [quantity, setQuantity] = useState(1);
-
-  // Scroll to top when slug changes
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [slug]);
-
-  if (!product) {
-    return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center">
-        <h1 className="text-3xl font-serif mb-4">Product Not Found</h1>
-        <Link href="/" className="text-primary underline">Return Home</Link>
-      </div>
-    );
-  }
-
-  const relatedProducts = products
-    .filter(p => p.category === product.category && p.id !== product.id)
-    .slice(0, 4);
-
-  return (
-    <div className="min-h-screen bg-background">
-      {/* Breadcrumb */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="flex items-center gap-2 text-[10px] tracking-widest uppercase font-semibold text-muted-foreground">
-          <Link href="/" className="hover:text-foreground">Home</Link>
-          <ChevronRight className="w-3 h-3" />
-          <Link href={`/collection/${product.category}`} className="hover:text-foreground">{product.category}</Link>
-          <ChevronRight className="w-3 h-3" />
-          <span className="text-foreground">{product.name}</span>
-        </div>
-      </div>
-
-      {/* Main Product Area */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24">
-        <div className="flex flex-col lg:flex-row gap-12 lg:gap-24">
-          
-          {/* Images */}
-          <div className="w-full lg:w-1/2 flex flex-col gap-4">
-            <div className="aspect-[4/5] bg-secondary w-full overflow-hidden">
-              <img 
-                src={product.image} 
-                alt={product.name}
-                className="w-full h-full object-cover"
-              />
-            </div>
-          </div>
-
-          {/* Details */}
-          <div className="w-full lg:w-1/2 pt-8">
-            <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-bold mb-3">
-              {product.category}
-            </p>
-            <h1 className="font-serif text-3xl md:text-5xl font-bold text-foreground mb-4 leading-tight">
-              {product.name}
-            </h1>
-            
-            <div className="flex items-center gap-4 mb-6">
-              <div className="flex items-center gap-2">
-                {product.compareAt ? (
-                  <>
-                    <span className="text-2xl font-semibold text-destructive">${product.price}</span>
-                    <span className="text-lg text-muted-foreground line-through">${product.compareAt}</span>
-                  </>
-                ) : (
-                  <span className="text-2xl font-semibold text-foreground">${product.price}</span>
-                )}
-              </div>
-              <div className="h-6 w-px bg-border" />
-              <div className="flex items-center gap-1">
-                {[1,2,3,4,5].map(i => <Star key={i} className="w-4 h-4 fill-accent text-accent" />)}
-                <span className="text-xs text-muted-foreground ml-1">(4.9/5)</span>
-              </div>
-            </div>
-
-            <p className="text-muted-foreground text-sm md:text-base leading-relaxed mb-8">
-              {product.description}
-            </p>
-
-            {/* Actions */}
-            <div className="space-y-4 mb-12 border-y border-border py-8">
-              <div className="flex items-center gap-4">
-                {/* Quantity */}
-                <div className="flex items-center border border-border h-14">
-                  <button 
-                    className="px-4 hover:bg-secondary transition-colors h-full"
-                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  >-</button>
-                  <span className="w-8 text-center text-sm font-semibold">{quantity}</span>
-                  <button 
-                    className="px-4 hover:bg-secondary transition-colors h-full"
-                    onClick={() => setQuantity(quantity + 1)}
-                  >+</button>
-                </div>
-
-                <button
-                  onClick={() => addToCart(product, quantity)}
-                  className="flex-1 h-14 bg-primary text-primary-foreground font-bold tracking-widest text-xs uppercase hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 shadow-lg"
-                >
-                  <ShoppingBag className="w-4 h-4" /> Add To Cart
-                </button>
-                
-                <button
-                  onClick={() => toggleWishlist(product)}
-                  className="h-14 w-14 border border-border flex items-center justify-center hover:bg-secondary transition-colors"
-                >
-                  <Heart className={`w-5 h-5 ${isWishlisted(product.id) ? "fill-primary" : ""}`} />
-                </button>
-              </div>
-              
-              {product.compareAt && (
-                <p className="text-xs text-destructive font-medium">⚡ High demand: Only 3 items left in stock!</p>
-              )}
-            </div>
-
-            {/* Features list */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-3 text-sm text-foreground">
-                <ShieldCheck className="w-5 h-5 text-accent" />
-                <span>100% Authentic Luxury Guarantee</span>
-              </div>
-              <div className="flex items-center gap-3 text-sm text-foreground">
-                <Truck className="w-5 h-5 text-accent" />
-                <span>Free Express Shipping Worldwide</span>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </div>
-
-      {/* Related Products */}
-      {relatedProducts.length > 0 && (
-        <section className="bg-secondary/30 py-20">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 className="font-serif text-3xl font-bold text-center mb-12">You May Also Like</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-              {relatedProducts.map(p => (
-                <ProductCard key={p.id} product={p} />
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-    </div>
-  );
-}
+export function Detail(){const {slug}=useParams();const product=products.find(p=>p.slug===slug);const {addToCart,toggleWishlist,isWishlisted}=useShop();const [quantity,setQuantity]=useState(1);const [added,setAdded]=useState(false);const [selectedImage,setSelectedImage]=useState(product?.image||"");useEffect(()=>{window.scrollTo(0,0);setSelectedImage(product?.image||"");setQuantity(1);},[slug,product?.image]);if(!product)return <div className="arty-container py-28 text-center"><h1 className="text-4xl font-bold">That find has wandered off.</h1><Link href="/collection/all" className="inline-block mt-5 underline">Explore the marketplace</Link></div>;const related=products.filter(p=>p.category===product.category&&p.id!==product.id).slice(0,4);const saved=isWishlisted(product.id);return <div className="arty-container">
+ <div className="py-5 text-xs text-[#858189]"><Link href="/">Home</Link><span className="mx-2">/</span><Link href={`/collection/${product.category}`} className="capitalize">{product.type}</Link><span className="mx-2">/</span><span className="text-[#28272d]">{product.name}</span></div>
+ <div className="grid lg:grid-cols-[1.05fr_.95fr] gap-7 lg:gap-14 pb-14"><div className="grid grid-cols-1 sm:grid-cols-[78px_1fr] gap-3"><div className="flex sm:flex-col gap-2 order-2 sm:order-1">{product.gallery.map((image,index)=><button key={`${product.id}-view-${index}`} onClick={()=>setSelectedImage(image)} aria-label={`View product image ${index+1}`} className={`w-[58px] sm:w-full aspect-square rounded-xl overflow-hidden border-2 ${selectedImage===image?"border-[#b2ed19]":"border-transparent"}`}><img src={image} alt="" className="w-full h-full object-cover"/></button>)}</div><div className="order-1 sm:order-2 rounded-[22px] overflow-hidden bg-[#f2f0e9] aspect-[.9] sm:aspect-[.85]"><img src={selectedImage} alt={product.name} className="w-full h-full object-cover transition-opacity duration-300"/></div></div>
+ <div className="lg:pt-7"><p className="inline-flex bg-[#e7f5bd] rounded-full px-3 py-1 text-[10px] uppercase font-bold tracking-[.15em]">{product.type}</p><p className="text-xs uppercase tracking-[.16em] text-[#858189] mt-5">Made by <span className="font-bold text-[#28272d]">{product.creator}</span></p><h1 className="text-3xl md:text-[42px] font-bold tracking-tight leading-tight mt-2">{product.name}</h1><div className="flex items-center gap-2 mt-4"><div className="flex text-[#efab22]">{[1,2,3,4,5].map(i=><Star key={i} size={14} fill="currentColor"/>)}</div><span className="text-xs font-semibold">{product.rating.toFixed(1)}</span><span className="text-xs text-[#88858b]">({product.reviews} reviews)</span></div><div className="flex items-baseline gap-3 mt-5"><span className="text-2xl font-bold">${product.price.toFixed(2)}</span>{product.compareAt&&<><span className="text-sm line-through text-[#9b979e]">${product.compareAt.toFixed(2)}</span><span className="text-xs text-[#d52d9a] font-bold">A little saving</span></>}</div><p className="text-[#68656c] leading-7 mt-5">{product.description}</p>
+ <div className="mt-7 border-y border-[#e5e2da] py-5 space-y-3">{product.details.map(text=><div key={text} className="flex gap-2 text-sm"><Check size={16} className="text-[#729500] shrink-0 mt-0.5"/><span>{text}</span></div>)}</div>
+ <div className="flex gap-2 mt-6"><div className="flex items-center rounded-xl border border-[#d8d5cc]"><button aria-label="Decrease quantity" className="px-4 h-12" onClick={()=>setQuantity(Math.max(1,quantity-1))}>−</button><span className="w-5 text-center text-sm">{quantity}</span><button aria-label="Increase quantity" className="px-4 h-12" onClick={()=>setQuantity(quantity+1)}>+</button></div><button onClick={()=>{addToCart(product,quantity);setAdded(true);window.setTimeout(()=>setAdded(false),1400);}} className="flex-1 rounded-xl bg-[#b2ed19] font-bold text-sm flex justify-center items-center gap-2 hover:bg-[#a2dc12]"><ShoppingBag size={17}/>{added?"Added to bag":"Add to bag · $"+(product.price*quantity).toFixed(2)}</button><button onClick={()=>toggleWishlist(product)} aria-label={saved?"Remove from wishlist":"Save to wishlist"} className={`w-12 rounded-xl border border-[#d8d5cc] flex items-center justify-center ${saved?"text-[#d52d9a] bg-[#fdeaf5]":""}`}><Heart className={saved?"fill-current":""}/></button></div>
+ <div className="grid sm:grid-cols-2 gap-3 mt-6"><div className="rounded-xl bg-white border border-[#e9e6dd] p-4 flex gap-3"><ShieldCheck className="text-[#d52d9a]"/><div><b className="text-xs">A place you can trust</b><p className="text-[11px] text-[#858189] mt-1">Clear details, thoughtful makers.</p></div></div><div className="rounded-xl bg-white border border-[#e9e6dd] p-4 flex gap-3"><PackageCheck className="text-[#729500]"/><div><b className="text-xs">Simple, clear delivery</b><p className="text-[11px] text-[#858189] mt-1">{product.category==="digital"?"Instant digital delivery":"Shipping shown at checkout."}</p></div></div></div>
+ <div className="mt-8"><h2 className="font-bold text-lg">A note from the maker</h2><div className="mt-3 p-4 rounded-2xl bg-[#f0eee7] flex gap-3"><div className="w-10 h-10 rounded-full arty-grad flex items-center justify-center font-bold">{product.creator.slice(0,1)}</div><div><b className="text-sm">{product.creator}</b><p className="text-xs text-[#6f6c71] mt-1 leading-5">Independent creator bringing a little more color, curiosity, and care to everyday life.</p></div></div></div></div></div>
+ <section className="border-t border-[#e5e2da] py-12"><div className="grid md:grid-cols-[.7fr_1.3fr] gap-9"><div><p className="text-[10px] uppercase tracking-[.2em] text-[#d52d9a] font-bold">Community notes</p><h2 className="text-3xl font-bold mt-2">Collectors say.</h2><div className="flex items-center gap-2 mt-4"><div className="flex text-[#efab22]">{[1,2,3,4,5].map(i=><Star key={i} size={14} fill="currentColor"/>)}</div><b className="text-sm">{product.rating.toFixed(1)}</b><span className="text-xs text-[#858189]">from {product.reviews} reviews</span></div></div><div className="grid sm:grid-cols-2 gap-3">{[["Maya R.","A lovely little discovery. The details feel thoughtful and it looks even better in person."],["Theo P.","The maker story made this one feel special. Arrived just as described, and I’m already eyeing another." ]].map(([person,comment])=><article key={person} className="rounded-2xl bg-white border border-[#e9e6dd] p-5"><div className="flex text-[#efab22]">{[1,2,3,4,5].map(i=><Star key={i} size={12} fill="currentColor"/>)}</div><p className="text-sm leading-6 mt-3">“{comment}”</p><p className="text-[10px] text-[#858189] mt-4 font-bold">{person} · Verified demo collector</p></article>)}</div></div></section>
+ <section className="border-t border-[#e5e2da] py-12"><div className="flex justify-between items-end mb-6"><div><p className="text-[10px] uppercase tracking-[.2em] text-[#d52d9a] font-bold">Keep wandering</p><h2 className="text-3xl font-bold mt-2">More from this orbit</h2></div><Link href={`/collection/${product.category}`} className="text-xs font-bold flex items-center gap-2">See all <ArrowRight size={15}/></Link></div><div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-5">{related.map(p=><ProductCard key={p.id} product={p}/>)}</div></section>
+ </div>}

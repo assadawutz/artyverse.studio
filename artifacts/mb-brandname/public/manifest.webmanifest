@@ -1,0 +1,35 @@
+{
+  "id": "./",
+  "name": "ARTYVERSE — Collect Without Limits",
+  "short_name": "ARTYVERSE",
+  "description": "Discover digital creations, collectible drops, and goods from independent creators.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#fbfbf8",
+  "theme_color": "#c6f000",
+  "categories": ["shopping", "art", "lifestyle"],
+  "icons": [
+    {
+      "src": "./brand-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Explore the marketplace",
+      "short_name": "Explore",
+      "url": "./collection/all",
+      "icons": [{ "src": "./brand-icon.svg", "sizes": "any", "type": "image/svg+xml" }]
+    },
+    {
+      "name": "Saved items",
+      "short_name": "Wishlist",
+      "url": "./wishlist",
+      "icons": [{ "src": "./brand-icon.svg", "sizes": "any", "type": "image/svg+xml" }]
+    }
+  ]
+}
