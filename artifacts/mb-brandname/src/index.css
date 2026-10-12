@@ -65,3 +65,36 @@ button { cursor: pointer; }
 .fade-up { animation:fadeUp .55s cubic-bezier(.2,.75,.25,1) both; }
 @keyframes fadeUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
 @media(max-width:640px){.arty-container{width:calc(100% - 28px)}}
+
+/* ARTYVERSE product discovery — tactile paper, citrus and raspberry */
+:root {
+  --background: 47 32% 96%;
+  --foreground: 252 13% 15%;
+  --card: 48 45% 99%;
+  --card-foreground: 252 13% 15%;
+  --popover: 48 45% 99%;
+  --popover-foreground: 252 13% 15%;
+  --primary: 76 88% 52%;
+  --primary-foreground: 252 13% 15%;
+  --secondary: 47 30% 91%;
+  --secondary-foreground: 252 13% 15%;
+  --muted: 46 25% 91%;
+  --muted-foreground: 250 6% 45%;
+  --accent: 322 72% 53%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 70% 48%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 45 17% 84%;
+  --input: 45 17% 84%;
+  --ring: 76 68% 37%;
+}
+.product-artwork { background-color:#f1efe5; }
+.product-artwork img { mix-blend-mode:multiply; }
+.arty-focus:focus-visible { outline:3px solid #8dbb14; outline-offset:3px; }
+.preview-stage {
+  background-color:#efede3;
+  background-image:radial-gradient(#dad7ca .8px, transparent .8px);
+  background-size:18px 18px;
+}
+.preview-stage img { mix-blend-mode:multiply; }
+.reveal-in { animation:fadeUp .45s cubic-bezier(.2,.75,.25,1) both; }

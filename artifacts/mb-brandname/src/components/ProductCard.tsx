@@ -1,22 +1,29 @@
 import { useState } from "react";
 import { Link } from "wouter";
-import { Heart, ShoppingBag, ArrowUpRight } from "lucide-react";
+import { Eye, Heart, ShoppingBag } from "lucide-react";
 import { Product } from "@/data/products";
 import { useShop } from "@/context/ShopContext";
 import { cn } from "@/lib/utils";
-export function ProductCard({product,className}:{product:Product;className?:string}){
- const {addToCart,toggleWishlist,isWishlisted}=useShop();const saved=isWishlisted(product.id);const [added,setAdded]=useState(false);
- return <article className={cn("group min-w-0",className)} data-testid={`card-product-${product.id}`}>
-  <div className="relative aspect-[.88] overflow-hidden rounded-[18px] bg-[#efeee8]">
-   <Link href={`/product/${product.slug}`} className="absolute inset-0 z-[1]" aria-label={`View ${product.name}`}><img src={product.image} alt={product.name} loading="lazy" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.035]"/></Link>
-   <span className="absolute top-3 left-3 z-[2] rounded-full bg-white/90 px-3 py-1.5 text-[9px] font-bold uppercase tracking-[.12em]">{product.tags.includes("limited drop")?"Limited drop":product.type}</span>
-   <button onClick={()=>toggleWishlist(product)} aria-label={saved?"Remove from saved":"Save product"} className={cn("absolute top-3 right-3 z-[3] w-9 h-9 rounded-full bg-white/90 flex items-center justify-center transition-all hover:scale-105",saved?"text-[#df2c99]":"text-[#26252b]")}><Heart size={17} className={saved?"fill-current":""}/></button>
-   <button onClick={()=>{addToCart(product);setAdded(true);window.setTimeout(()=>setAdded(false),1400);}} className="absolute z-[2] bottom-3 left-3 right-3 rounded-xl bg-white/95 py-3 text-xs font-bold flex items-center justify-center gap-2 sm:translate-y-3 sm:opacity-0 sm:group-hover:translate-y-0 sm:group-hover:opacity-100 transition-all hover:bg-[#b2ed19]"><ShoppingBag size={15}/>{added?"Added to your bag":"Add to bag"}</button>
-  </div>
-  <Link href={`/product/${product.slug}`} className="block pt-3 px-1">
-   <p className="text-[10px] uppercase tracking-[.14em] text-[#88858b] mb-1">{product.creator} <span className="text-[#d52d9a]">·</span> {product.category}</p>
-   <div className="flex justify-between gap-2 items-start"><h3 className="font-semibold leading-snug text-[14px] group-hover:underline decoration-[#b2ed19] underline-offset-4">{product.name}</h3><ArrowUpRight size={15} className="text-[#aaa7a0] mt-0.5 shrink-0"/></div>
-   <p className="mt-1.5 text-sm font-bold">${product.price.toFixed(2)}{product.compareAt&&<span className="ml-2 text-xs font-normal text-[#aaa] line-through">${product.compareAt.toFixed(2)}</span>}</p>
-  </Link>
- </article>;
+
+export function ProductCard({ product, className }: { product: Product; className?: string }) {
+  const { addToCart, toggleWishlist, isWishlisted } = useShop();
+  const saved = isWishlisted(product.id);
+  const [added, setAdded] = useState(false);
+  return <article className={cn("group min-w-0", className)} data-testid={`card-product-${product.id}`}>
+    <Link href={`/preview/${product.slug}`} className="arty-focus product-artwork block aspect-[.91] overflow-hidden rounded-[20px] bg-[#efeee8]" aria-label={`Preview ${product.name}`} data-testid={`link-preview-${product.id}`}>
+      <img src={product.image} alt={`${product.name}, ${product.type} by ${product.creator}`} loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.035]"/>
+    </Link>
+    <div className="px-1 pt-3">
+      <p className="mb-1 text-[10px] uppercase tracking-[.14em] text-[#88858b]">{product.creator} <span className="text-[#d52d9a]">·</span> {product.type}</p>
+      <Link href={`/product/${product.slug}`} className="arty-focus block rounded-sm" data-testid={`link-detail-${product.id}`}>
+        <div className="flex items-start justify-between gap-2"><h3 className="text-[14px] font-semibold leading-snug group-hover:underline decoration-[#b2ed19] underline-offset-4">{product.name}</h3><span className="shrink-0 text-[9px] font-bold uppercase tracking-[.08em] text-[#99959b]">{product.category}</span></div>
+        <p className="mt-1.5 text-sm font-bold" data-testid={`text-price-${product.id}`}>${product.price.toFixed(2)}{product.compareAt && <span className="ml-2 text-xs font-normal text-[#aaa] line-through">${product.compareAt.toFixed(2)}</span>}</p>
+      </Link>
+      <div className="mt-3 flex items-center gap-2">
+        <Link href={`/preview/${product.slug}`} data-testid={`button-open-preview-${product.id}`} className="arty-focus inline-flex min-h-10 flex-1 items-center justify-center gap-1.5 rounded-xl border border-[#dedbd2] bg-[#fffdf7] px-2 text-[11px] font-bold transition-colors hover:bg-[#f4f2e9]"><Eye size={14}/> Preview</Link>
+        <button onClick={() => { addToCart(product); setAdded(true); window.setTimeout(() => setAdded(false), 1400); }} data-testid={`button-add-${product.id}`} className="arty-focus inline-flex min-h-10 flex-[1.25] items-center justify-center gap-1.5 rounded-xl bg-[#b2ed19] px-2 text-[11px] font-bold transition-colors hover:bg-[#a2dc12]"><ShoppingBag size={14}/>{added ? "Added" : "Add to bag"}</button>
+        <button onClick={() => toggleWishlist(product)} aria-label={saved ? "Remove from saved" : `Save ${product.name}`} aria-pressed={saved} data-testid={`button-wishlist-${product.id}`} className={cn("arty-focus flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#dedbd2] bg-[#fffdf7] transition-colors hover:bg-[#fdeaf5]", saved ? "text-[#df2c99]" : "text-[#26252b]")}><Heart size={16} className={saved ? "fill-current" : ""}/></button>
+      </div>
+    </div>
+  </article>;
 }
